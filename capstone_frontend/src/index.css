@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+textboxstuff {
+  border: 3px solid #555;
+}
+  
+column {
+    float: left;
+}
+
+left, right {
+    width: 25%;
+  }
+  
+  middle {
+    width: 50%;
+  }
+
+row:after {
+    content: "";
+    display: table;
+    clear: both;
+  }

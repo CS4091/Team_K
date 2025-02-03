@@ -1,0 +1,30 @@
+{
+  "name": "cs_capstone_project",
+  "version": "1.0.0",
+  "description": "This is a node powered project",
+  "main": "index.js",
+  "scripts": {
+    "installAll": "npm install && npm install --prefix capstone_frontend && npm install --prefix capstone_backend",
+    "front": "cd capstone_frontend && npm run dev",
+    "back": "cd capstone_backend && nodemon index.js",
+    "both": "concurrently \"npm run front\" \"npm run back\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@emotion/react": "^11.13.3",
+    "@emotion/styled": "^11.13.0",
+    "@mdi/js": "^7.4.47",
+    "@mdi/react": "^1.6.1",
+    "@mui/icons-material": "^6.1.5",
+    "@mui/material": "^6.1.5",
+    "concurrently": "^9.0.1",
+    "mongodb": "^6.9.0",
+    "nodemon": "^3.1.7"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "@types/node": "^22.9.1"
+  }
+}
