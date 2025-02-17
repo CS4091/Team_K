@@ -4,6 +4,8 @@ import TopBar from '../Components/TopBar'
 import UserModal from '../Components/UserModal'
 import { useGlobalContext } from '../Context/GlobalContext'
 import { useNavigate, useParams } from 'react-router-dom'
+import { Box, Grid, Typography } from '@mui/material'
+import PostCard from '../Components/PostCard'
 
 const ClubPage = () => {
     const {theme, isModalOpen, setIsModalOpen, user, searched, setSearched, clubPosts, setClubPosts, clubObject, setClubObject} = useGlobalContext()
@@ -33,9 +35,25 @@ const ClubPage = () => {
         <div>
             <ThemeProvider theme={theme}>
                 <TopBar/>
-                <div>
-                    get posts by club
-                </div>
+                {clubObject ? (
+                    <div>
+                        <Box className="rounded-lg p-6 mb-6 text-center">
+                            <Typography variant='h4' gutterBottom>{clubObject.name}</Typography>
+                            <Typography variant='subtitle1'>President: {clubObject.president}</Typography>
+                        </Box>
+                        <Grid container spacing={3}>
+                            {clubPosts.map((post, index) => {
+                                return (
+                                    <Grid item xs={12} key={index}>
+                                        <PostCard post={post} />
+                                    </Grid>
+                                )
+                            })}
+                        </Grid>
+                    </div>
+                ) : (
+                    <>Loading...</>
+                )}
                 <UserModal isOpen={isModalOpen} setIsOpen={setIsModalOpen}/>
             </ThemeProvider>
         </div>

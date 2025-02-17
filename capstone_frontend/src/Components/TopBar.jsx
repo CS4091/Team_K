@@ -17,8 +17,9 @@ import{ MenuItem} from '@mui/material'
 
 const TopBar = () => {
     const navigate = useNavigate()
-    const {user, setIsModalOpen, isModalOpen, allClasses, classPosts, setClassPosts, searched, setSearched} = useGlobalContext()
+    const {user, setIsModalOpen, isModalOpen, allClasses, classPosts, setClassPosts, searched, setSearched, allClubs, clubPosts, setClubPosts} = useGlobalContext()
     const [selectedClass, setSelectedClass] = useState({})
+    const [selectedClub, setSelectedClub] = useState({})
     const [anchorEl, setAnchorEl] = React.useState(null);
     const open = Boolean(anchorEl);
 
@@ -40,6 +41,16 @@ const TopBar = () => {
         }
     }
 
+    const handleNavigateClub = () => {
+        if (selectedClub) {
+            if(clubPosts) {
+                setClubPosts([])
+            }
+            setSearched(false)
+            navigate(`/club/${selectedClub.name}`);
+        }
+    }
+
     const handleClick = (event) => {
         setAnchorEl(event.currentTarget);
       };
@@ -57,7 +68,7 @@ const TopBar = () => {
                             <Icon path={mdiPickaxe} size={1} />
                             <Button color="inherit" onClick={() => navigate('/')}>Miner Board</Button>
                         </div>
-                        <div class='col-span-2' style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        <div class='col-span-1' style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                             <Autocomplete 
                                 color='primary'
                                 options={allClasses} 
@@ -73,7 +84,26 @@ const TopBar = () => {
                                 onClick={handleNavigate}
                                 disabled={!selectedClass}
                             >
-                                Go to Class
+                                Go
+                            </Button>
+                        </div>
+                        <div class='col-span-1' style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                            <Autocomplete 
+                                color='primary'
+                                options={allClubs} 
+                                getOptionLabel={(option) => option.name} 
+                                renderInput={(params) => <TextField sx={{input: {color: 'white'}, label:{color: 'white'}}} {...params} label="Search Club" variant="outlined" />}
+                                onChange={(event, value) => setSelectedClub(value)}
+                                style={{ width: 300 }}
+                            >
+                            </Autocomplete>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={handleNavigateClub}
+                                disabled={!selectedClub}
+                            >
+                                Go
                             </Button>
                         </div>
                         <div class='col-span-1 text-right mr-1'>
