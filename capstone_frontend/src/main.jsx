@@ -10,6 +10,7 @@ import { GlobalProvider } from './Context/GlobalContext';
 import { CreatePage } from './Pages/CreatePage';
 import UserPage from './Pages/UserPage';
 import ClassPage from './Pages/ClassPage';
+import ClubClassPage from './Pages/ClubClassPage';
 
 
 const router = createBrowserRouter([
@@ -24,6 +25,10 @@ const router = createBrowserRouter([
   {
     path: "/create",
     element: <CreatePage />
+  },
+  {
+    path: "/createClass",
+    element: <ClubClassPage />
   },
   {
     path: "/user/:userId",

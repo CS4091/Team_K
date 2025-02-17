@@ -195,6 +195,8 @@ app.post("/class/add", async (req, res) => {
   }
 })
 
+
+
 app.get("/class/getAll", async (req, res) => {
   try {
     const collection = client.db('capstone-website').collection('classes')
@@ -204,6 +206,58 @@ app.get("/class/getAll", async (req, res) => {
   } catch (error) {
     console.error("Error fetching classes:", error)
     res.status(500).send("Error fetching classes")
+  }
+})
+
+app.post("/club/add", async (req, res) => {
+  try {
+    const { name, description, creator, president = "TBD", importantPeople = [] } = req.body
+    const collection = client.db('capstone-website').collection('clubs')
+    const newClub = {
+      name,
+      description,
+      creator,
+      president,
+      importantPeople,
+      createdAt: new Date(),
+    }
+
+    const result = await collection.insertOne(newClub)
+    res.status(201).json({ message: "Club added successfully", clubId: result.insertedId })
+  } catch (error) {
+    console.error("Error adding club:", error)
+    res.status(500).send("Error adding club")
+  }
+})
+
+app.get("/clubs/getAll", async (req, res) => {
+  try {
+    const collection = client.db('capstone-website').collection('clubs')
+    const clubses = await collection.find({}).toArray()
+
+    res.status(200).json(clubses)
+  } catch (error) {
+    console.error("Error fetching clubses:", error)
+    res.status(500).send("Error fetching clubses")
+  }
+})
+
+
+app.get("/both/getAll", async (req, res) => {
+  try {
+    const collection = client.db('capstone-website').collection('clubs')
+    const clubses = await collection.find({}).toArray()
+    const collection2 = client.db('capstone-website').collection('classes')
+    const classes = await collection2.find({}).toArray()
+    const combinedObject = {
+      classes: classes,
+      clubs: clubses
+    }
+
+    res.status(200).json(combinedObject)
+  } catch (error) {
+    console.error("Error fetching clubses:", error)
+    res.status(500).send("Error fetching clubses")
   }
 })
 

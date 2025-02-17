@@ -11,12 +11,16 @@ import { Autocomplete, IconButton, Tooltip, TextField } from '@mui/material'
 import { Add, Person } from '@mui/icons-material'
 import { useGlobalContext } from '../Context/GlobalContext'
 import UserModal from './UserModal'
+import {Menu} from '@mui/material'
+import{ MenuItem} from '@mui/material'
 
 
 const TopBar = () => {
     const navigate = useNavigate()
     const {user, setIsModalOpen, isModalOpen, allClasses, classPosts, setClassPosts, searched, setSearched} = useGlobalContext()
     const [selectedClass, setSelectedClass] = useState({})
+    const [anchorEl, setAnchorEl] = React.useState(null);
+    const open = Boolean(anchorEl);
 
     const handleUserClick = () => {
         if (!user.username) {
@@ -36,7 +40,12 @@ const TopBar = () => {
         }
     }
 
-    
+    const handleClick = (event) => {
+        setAnchorEl(event.currentTarget);
+      };
+      const handleClose = () => {
+        setAnchorEl(null);
+      };
 
     return (
         <Box sx={{ flexGrow: 1 }}>
@@ -68,10 +77,29 @@ const TopBar = () => {
                             </Button>
                         </div>
                         <div class='col-span-1 text-right mr-1'>
-                            <Tooltip title="Create Post">
-                                <IconButton color="inherit" variant="outlined" onClick={() => navigate('/create')}>
+                            <Tooltip title="Create">
+                                <IconButton 
+                                    color="inherit" 
+                                    variant="outlined" 
+                                    aria-controls={open ? 'basic-menu' : undefined}
+                                    aria-haspopup="true"
+                                    aria-expanded={open ? 'true' : undefined}
+                                    onClick={handleClick}
+                                >
                                     <Add/>
                                 </IconButton>
+                                <Menu
+                                    id="basic-men"
+                                    anchorEl={anchorEl}
+                                    open={open}
+                                    onClose={handleClose}
+                                    MenuListProps={{
+                                      'aria-labelledby': 'basic-button',
+                                    }}
+                                >
+                                    <MenuItem onClick={() => navigate('/create')}>Create Post</MenuItem>
+                                    <MenuItem onClick={() => navigate('/createClass')}>Create Club or Class</MenuItem>
+                                </Menu>
                             </Tooltip>
                             <Tooltip title={user.username ? user.username : "Sign in"}>
                                 <IconButton color="inherit" variant="outlined" onClick={() => handleUserClick()}>

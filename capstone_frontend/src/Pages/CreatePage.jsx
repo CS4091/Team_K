@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react'
 import { useGlobalContext } from '../Context/GlobalContext'
 import { ThemeProvider } from '@emotion/react'
 import TopBar from '../Components/TopBar'
-import { OutlinedInput, TextareaAutosize, Box, Button, Select, MenuItem, FormControl } from '@mui/material'
+import { OutlinedInput, TextareaAutosize, Box, Button, Select, MenuItem, FormControl, Snackbar } from '@mui/material'
 import UserModal from '../Components/UserModal'
-import { Snackbar } from '@mui/material'
+// import { Snackbar } from '@mui/material'
 
 
 export const CreatePage = () => {
@@ -13,9 +13,6 @@ export const CreatePage = () => {
     const [text, setText] = useState("")
     const [className, setClassName] = useState("")
     const [club, setClub] = useState("")
-    const [classDepartment, setClassDepartment] = useState("")
-    const [newClassName, setNewClassName] = useState("")
-    const [newClassNum, setNewClassNum] = useState(2500)
     const [isSnackOpen, setIsSnackOpen] = useState(false)
     const [snackMessage, setSnackMessage] = useState("")
 
@@ -46,35 +43,14 @@ export const CreatePage = () => {
 
     }
 
-    const handleSubmitClass = async () => {
-        const newClass = {
-            name : newClassName,
-            department: classDepartment,
-            number: newClassNum
-        }
-        const response = await fetch('http://localhost:3001/class/add',{
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(newClass),
-        })
-        if (!response.ok) {
-            setSnackMessage('Error creating class')
-            setIsSnackOpen(true)
-            throw new Error(`Error: ${response.statusText}`);
-        }
-        setSnackMessage('Class created successfully')
-        setIsSnackOpen(true)
-        const result = await response.json()
-    }
 
     return (
         <div>
             <ThemeProvider theme={theme}>
                 <TopBar></TopBar>
-                <div class="grid grid-cols-2 divide-x-2 divide-black">
-                    <div class="col-span-1 mr-12">
+                <div style={{padding:'2%'}}>
+                {/* <div class="grid grid-cols-2 divide-x-2 divide-black">
+                    <div class="col-span-1 mr-12"> */}
                     <FormControl fullWidth>
                         <h1 className="text-3xl font-bold mt-1">Create Post</h1>
                         <h3 className="text-xl mt-8">Title</h3>
@@ -99,7 +75,7 @@ export const CreatePage = () => {
                         </OutlinedInput>
 
                         <h3 className="text-xl mt-8">Class</h3>
-                        <Select 
+                        <Select         //TODO: Change to autocomplete
                             id="classes-select"
                             value={className}
                             onChange={(e) => setClassName(e.target.value)}
@@ -111,14 +87,14 @@ export const CreatePage = () => {
                                 
                             })}
                         </Select>
-                        </FormControl>
+                    </FormControl>
                         <Box display="flex" justifyContent="flex-begin" sx={{ mt: 3 }}>
                             <Button variant="outlined" onClick={() => {setText(""); setTitle("")}}>Cancel</Button>
                             <Button variant="contained" disabled={(!user.username || !text || !title)} sx={{ ml : 1 }} onClick={() => handleSubmit()}>Submit</Button>
                         </Box>
-                        </div>
-                    <div class="col-span-1 mr-8">
-                    <FormControl fullWidth>
+                    </div>
+                    {/* <div class="col-span-1 mr-8"> */}
+                    {/* <FormControl fullWidth>
                         <h1 className="text-3xl font-bold mt-1 ml-1">Create Class</h1>
                         <h3 className="text-xl mt-8 ml-1">Department</h3>
                         <OutlinedInput 
@@ -159,7 +135,7 @@ export const CreatePage = () => {
                             <Button variant="contained" disabled={(!user.username || !classDepartment || !newClassName || !newClassNum)} sx={{ ml : 1 }} onClick={() => handleSubmitClass()}>Submit</Button>
                         </Box>
                     </div>
-                </div>
+                </div> */}
                
                 <UserModal isOpen={isModalOpen} setIsOpen={setIsModalOpen}/>
                 <Snackbar open={isSnackOpen} autoHideDuration={3000} onClose={() => setIsSnackOpen(false)} anchorOrigin={{vertical: 'bottom', horizontal: 'center'}} message={snackMessage}/>
