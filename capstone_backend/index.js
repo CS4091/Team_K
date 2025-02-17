@@ -299,6 +299,38 @@ app.get("/class/:className", async (req, res) => {
   }
 })
 
+app.get("/club/:clubName", async (req, res) => {
+  try {
+    const name = req.params.clubName
+    const collection = client.db('capstone-website').collection('clubs')
+    const classData = await collection.findOne({ name: { $regex: new RegExp(`^${name}$`, 'i') } })
+
+    if (!classData) {
+      return res.status(404).json({ message: "Club not found" })
+    }
+    res.status(200).json(classData)
+  } catch (error) {
+    console.error("Error fetching club by name:", error)
+    res.status(500).send("Error fetching club by name")
+  }
+})
+
+app.get("/post/club/:clubName", async (req, res) => {
+  try {
+    const name = req.params.clubName
+    const collection = client.db('capstone-website').collection('posts')
+    const classData = await collection.find({ club: { $regex: new RegExp(`^${name}$`, 'i') } }).toArray()
+
+    if (!classData) {
+      return res.status(404).json({ message: "Posts for this club not found" })
+    }
+    res.status(200).json(classData)
+  } catch (error) {
+    console.error("Error fetching club by name:", error)
+    res.status(500).send("Error fetching club by name")
+  }
+})
+
 
 app.get("/post/class/:className", async (req, res) => {
   try {

@@ -11,7 +11,7 @@ import { CreatePage } from './Pages/CreatePage';
 import UserPage from './Pages/UserPage';
 import ClassPage from './Pages/ClassPage';
 import ClubClassPage from './Pages/ClubClassPage';
-
+import ClubPage from './Pages/ClubPage';
 
 const router = createBrowserRouter([
   {
@@ -37,6 +37,10 @@ const router = createBrowserRouter([
   {
     path: "/class/:cName",
     element: <ClassPage />
+  },
+  {
+    path: "/club/:cName",
+    element: <ClubPage />
   },
 ]);
 
