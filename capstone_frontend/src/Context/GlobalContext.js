@@ -27,16 +27,20 @@ export const GlobalProvider = ({children}) => {
     const [user, setUser] = useState({})
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [allClasses, setAllClasses] = useState([])
-    const [classPosts, setClassPosts] =useState([])
+    const [allClubs, setAllClubs] = useState([])
     const [searched, setSearched] = useState(false)
-    const [classObject, setClassObject] = useState({})
     const [isSnackOpen, setIsSnackOpen] = useState(false)
     const [snackMessage, setSnackMessage] = useState("")
+    const [cPosts, setCPosts] = useState([])
+    const [cObject, setCObject] = useState({})
+    const [allC, setAllC] = useState([])
 
     const getAllClasses = async () => {
-      const response = await fetch("http://localhost:3001/class/getAll");
-      const classes = await response.json()
-      setAllClasses(classes)
+      const response = await fetch("http://localhost:3001/both/getAll");
+      const both = await response.json()
+      setAllClasses(both.classes)
+      setAllClubs(both.clubs)
+      setAllC([...both.classes, ...both.clubs])
   }
 
   useEffect(() => {
@@ -45,7 +49,7 @@ export const GlobalProvider = ({children}) => {
 
     return React.createElement(
         GlobalContext.Provider,
-        { value: {theme, setTheme, user, setUser, isModalOpen, setIsModalOpen, allClasses, setAllClasses, classPosts, setClassPosts, searched, setSearched, classObject, setClassObject, isSnackOpen, setIsSnackOpen, snackMessage, setSnackMessage } },
+        { value: {theme, setTheme, user, setUser, isModalOpen, setIsModalOpen, allClasses, setAllClasses, searched, setSearched, isSnackOpen, setIsSnackOpen, snackMessage, setSnackMessage, allClubs, setAllClubs, cPosts, setCPosts, cObject, setCObject, allC } },
         children
       );
     

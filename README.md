@@ -23,9 +23,9 @@ npm -v: 10.2.4
 
 
 once you have this you can run these commands
-cd capstone_frontend
-npm install
-npm run dev
+
+npm run installAll
+npm run both
 
 This will install all the node packages and run the frontend which you can visit and theres a bit of react info their
 
