@@ -421,6 +421,34 @@ app.get('/search', async (req, res) => {
   }
 });
 
+app.get('/c/:cName', async (req, res) => {
+  try {
+    const cName = req.params.cName
+    let type = 'club'
+    let collection = client.db('capstone-website').collection('clubs')
+    let data = await collection.findOne({ name: { $regex: new RegExp(`^${cName}$`, 'i') } })
+    if(!data){
+      type = 'class'
+      collection = client.db('capstone-website').collection('classes')
+      data = await collection.findOne({ name: { $regex: new RegExp(`^${cName}$`, 'i') } })
+    }
+    let posts = []
+    collection = client.db('capstone-website').collection('posts')
+    if(type == 'club') {
+      posts = await collection.find({ club: { $regex: new RegExp(`^${data.name}$`, 'i') } }).toArray()
+    } else{
+      posts = await collection.find({ class: { $regex: new RegExp(`^${data.name}$`, 'i') } }).toArray()
+    }
+    
+    let result = {data, posts}
+
+    res.status(200).json(result)
+  } catch (error) {
+    console.error("Error fetching posts by club:", error)
+    res.status(500).send("Error fetching posts by club")
+  }
+})
+
 app.listen(port, () => {
   console.log(`App running on port ${port}.`)
 })

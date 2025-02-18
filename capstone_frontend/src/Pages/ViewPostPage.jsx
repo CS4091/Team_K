@@ -37,7 +37,7 @@ const ViewPostPage = () => {
                             {post.class ? (
                                 <div style={{display: 'flex'}}> 
                                     Class:&nbsp;
-                                    <div class="hover:underline" onClick={() => navigate(`/class/${post.class}`)}>{post.class}</div>
+                                    <div class="hover:underline" onClick={() => navigate(`/c/${post.class}`)}>{post.class}</div>
                                 </div>
                             ): (
                                 <></>
@@ -45,7 +45,7 @@ const ViewPostPage = () => {
                             }
                             {post.club ? (
                                 <div style={{display: 'flex'}}>
-                                    Club:&nbsp; <div class="hover:underline" onClick={() => navigate(`/club/${post.club}`)}>{post.club}</div>
+                                    Club:&nbsp; <div class="hover:underline" onClick={() => navigate(`/c/${post.club}`)}>{post.club}</div>
                                 </div>
                             ): (
                                 <></>

@@ -17,9 +17,9 @@ import{ MenuItem} from '@mui/material'
 
 const TopBar = () => {
     const navigate = useNavigate()
-    const {user, setIsModalOpen, isModalOpen, allClasses, classPosts, setClassPosts, searched, setSearched, allClubs, clubPosts, setClubPosts} = useGlobalContext()
-    const [selectedClass, setSelectedClass] = useState({})
-    const [selectedClub, setSelectedClub] = useState({})
+    const {user, setIsModalOpen, setSearched, cPosts, setCPosts, allC} = useGlobalContext()
+
+    const [selectedC, setSelectedC] = useState({})
     const [anchorEl, setAnchorEl] = React.useState(null);
     const open = Boolean(anchorEl);
 
@@ -32,22 +32,12 @@ const TopBar = () => {
       }
 
     const handleNavigate = () => {
-        if (selectedClass) {
-            if(classPosts) {
-                setClassPosts([])
+        if (selectedC) {
+            if(cPosts) {
+                setCPosts([])
             }
             setSearched(false)
-            navigate(`/class/${selectedClass.name}`);
-        }
-    }
-
-    const handleNavigateClub = () => {
-        if (selectedClub) {
-            if(clubPosts) {
-                setClubPosts([])
-            }
-            setSearched(false)
-            navigate(`/club/${selectedClub.name}`);
+            navigate(`/c/${selectedC.name}`);
         }
     }
 
@@ -71,10 +61,10 @@ const TopBar = () => {
                         <div class='col-span-1' style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                             <Autocomplete 
                                 color='primary'
-                                options={allClasses} 
+                                options={allC} 
                                 getOptionLabel={(option) => option.name} 
                                 renderInput={(params) => <TextField sx={{input: {color: 'white'}, label:{color: 'white'}}} {...params} label="Search Class" variant="outlined" />}
-                                onChange={(event, value) => setSelectedClass(value)}
+                                onChange={(event, value) => setSelectedC(value)}
                                 style={{ width: 300 }}
                             >
                             </Autocomplete>
@@ -82,26 +72,7 @@ const TopBar = () => {
                                 variant="contained"
                                 color="primary"
                                 onClick={handleNavigate}
-                                disabled={!selectedClass}
-                            >
-                                Go
-                            </Button>
-                        </div>
-                        <div class='col-span-1' style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                            <Autocomplete 
-                                color='primary'
-                                options={allClubs} 
-                                getOptionLabel={(option) => option.name} 
-                                renderInput={(params) => <TextField sx={{input: {color: 'white'}, label:{color: 'white'}}} {...params} label="Search Club" variant="outlined" />}
-                                onChange={(event, value) => setSelectedClub(value)}
-                                style={{ width: 300 }}
-                            >
-                            </Autocomplete>
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                onClick={handleNavigateClub}
-                                disabled={!selectedClub}
+                                disabled={!selectedC}
                             >
                                 Go
                             </Button>
