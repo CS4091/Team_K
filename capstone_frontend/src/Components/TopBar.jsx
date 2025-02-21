@@ -58,12 +58,12 @@ const TopBar = () => {
                             <Icon path={mdiPickaxe} size={1} />
                             <Button color="inherit" onClick={() => navigate('/')}>Miner Board</Button>
                         </div>
-                        <div class='col-span-1' style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        <div class='col-span-2' style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                             <Autocomplete 
                                 color='primary'
                                 options={allC} 
                                 getOptionLabel={(option) => option.name} 
-                                renderInput={(params) => <TextField sx={{input: {color: 'white'}, label:{color: 'white'}}} {...params} label="Search Class" variant="outlined" />}
+                                renderInput={(params) => <TextField sx={{input: {color: 'white'}, label:{color: 'white'}}} {...params} label="Search Class or Club" variant="outlined" />}
                                 onChange={(event, value) => setSelectedC(value)}
                                 style={{ width: 300 }}
                             >
