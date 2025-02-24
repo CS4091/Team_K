@@ -33,8 +33,24 @@ const ViewPostPage = () => {
                     <div class="col-span-1">01</div>
                     <div class="col-span-7 pt-2 pl-8 pr-8">
                         <div class="text-sm">{post.username}</div>
-                        <div class="text-sm hover:underline" onClick={() => navigate(`/class/${post.class}`)}>
-                           {post.class}
+                        <div>
+                            {post.class ? (
+                                <div style={{display: 'flex'}}> 
+                                    Class:&nbsp;
+                                    <div class="hover:underline" onClick={() => navigate(`/c/${post.class}`)}>{post.class}</div>
+                                </div>
+                            ): (
+                                <></>
+                            )
+                            }
+                            {post.club ? (
+                                <div style={{display: 'flex'}}>
+                                    Club:&nbsp; <div class="hover:underline" onClick={() => navigate(`/c/${post.club}`)}>{post.club}</div>
+                                </div>
+                            ): (
+                                <></>
+                            )
+                            }
                         </div>
                         <div class="text-3xl"> <b>{post.title}</b></div>
                         <div class="pt-4 ">{post.text}</div>

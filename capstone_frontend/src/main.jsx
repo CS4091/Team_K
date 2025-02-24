@@ -9,8 +9,8 @@ import ViewPostPage from './Pages/ViewPostPage';
 import { GlobalProvider } from './Context/GlobalContext';
 import { CreatePage } from './Pages/CreatePage';
 import UserPage from './Pages/UserPage';
-import ClassPage from './Pages/ClassPage';
-
+import ClubClassPage from './Pages/ClubClassPage';
+import CPage from './Pages/CPage';
 
 const router = createBrowserRouter([
   {
@@ -26,13 +26,17 @@ const router = createBrowserRouter([
     element: <CreatePage />
   },
   {
+    path: "/createClass",
+    element: <ClubClassPage />
+  },
+  {
     path: "/user/:userId",
     element: <UserPage/>
   },
   {
-    path: "/class/:cName",
-    element: <ClassPage />
-  },
+    path: "/c/:cName",
+    element: <CPage/>
+  }
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
