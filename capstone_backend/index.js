@@ -221,6 +221,8 @@ app.post("/class/add", async (req, res) => {
   }
 })
 
+
+
 app.get("/class/getAll", async (req, res) => {
   try {
     const collection = client.db('capstone-website').collection('classes')
@@ -230,6 +232,58 @@ app.get("/class/getAll", async (req, res) => {
   } catch (error) {
     console.error("Error fetching classes:", error)
     res.status(500).send("Error fetching classes")
+  }
+})
+
+app.post("/club/add", async (req, res) => {
+  try {
+    const { name, description, creator, president = "TBD", importantPeople = [] } = req.body
+    const collection = client.db('capstone-website').collection('clubs')
+    const newClub = {
+      name,
+      description,
+      creator,
+      president,
+      importantPeople,
+      createdAt: new Date(),
+    }
+
+    const result = await collection.insertOne(newClub)
+    res.status(201).json({ message: "Club added successfully", clubId: result.insertedId })
+  } catch (error) {
+    console.error("Error adding club:", error)
+    res.status(500).send("Error adding club")
+  }
+})
+
+app.get("/clubs/getAll", async (req, res) => {
+  try {
+    const collection = client.db('capstone-website').collection('clubs')
+    const clubses = await collection.find({}).toArray()
+
+    res.status(200).json(clubses)
+  } catch (error) {
+    console.error("Error fetching clubses:", error)
+    res.status(500).send("Error fetching clubses")
+  }
+})
+
+
+app.get("/both/getAll", async (req, res) => {
+  try {
+    const collection = client.db('capstone-website').collection('clubs')
+    const clubses = await collection.find({}).toArray()
+    const collection2 = client.db('capstone-website').collection('classes')
+    const classes = await collection2.find({}).toArray()
+    const combinedObject = {
+      classes: classes,
+      clubs: clubses
+    }
+
+    res.status(200).json(combinedObject)
+  } catch (error) {
+    console.error("Error fetching clubses:", error)
+    res.status(500).send("Error fetching clubses")
   }
 })
 
@@ -268,6 +322,38 @@ app.get("/class/:className", async (req, res) => {
   } catch (error) {
     console.error("Error fetching class by name:", error)
     res.status(500).send("Error fetching class by name")
+  }
+})
+
+app.get("/club/:clubName", async (req, res) => {
+  try {
+    const name = req.params.clubName
+    const collection = client.db('capstone-website').collection('clubs')
+    const classData = await collection.findOne({ name: { $regex: new RegExp(`^${name}$`, 'i') } })
+
+    if (!classData) {
+      return res.status(404).json({ message: "Club not found" })
+    }
+    res.status(200).json(classData)
+  } catch (error) {
+    console.error("Error fetching club by name:", error)
+    res.status(500).send("Error fetching club by name")
+  }
+})
+
+app.get("/post/club/:clubName", async (req, res) => {
+  try {
+    const name = req.params.clubName
+    const collection = client.db('capstone-website').collection('posts')
+    const classData = await collection.find({ club: { $regex: new RegExp(`^${name}$`, 'i') } }).toArray()
+
+    if (!classData) {
+      return res.status(404).json({ message: "Posts for this club not found" })
+    }
+    res.status(200).json(classData)
+  } catch (error) {
+    console.error("Error fetching club by name:", error)
+    res.status(500).send("Error fetching club by name")
   }
 })
 
@@ -360,6 +446,34 @@ app.get('/search', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch posts.' });
   }
 });
+
+app.get('/c/:cName', async (req, res) => {
+  try {
+    const cName = req.params.cName
+    let type = 'club'
+    let collection = client.db('capstone-website').collection('clubs')
+    let data = await collection.findOne({ name: { $regex: new RegExp(`^${cName}$`, 'i') } })
+    if(!data){
+      type = 'class'
+      collection = client.db('capstone-website').collection('classes')
+      data = await collection.findOne({ name: { $regex: new RegExp(`^${cName}$`, 'i') } })
+    }
+    let posts = []
+    collection = client.db('capstone-website').collection('posts')
+    if(type == 'club') {
+      posts = await collection.find({ club: { $regex: new RegExp(`^${data.name}$`, 'i') } }).toArray()
+    } else{
+      posts = await collection.find({ class: { $regex: new RegExp(`^${data.name}$`, 'i') } }).toArray()
+    }
+    
+    let result = {data, posts}
+
+    res.status(200).json(result)
+  } catch (error) {
+    console.error("Error fetching posts by club:", error)
+    res.status(500).send("Error fetching posts by club")
+  }
+})
 
 app.listen(port, () => {
   console.log(`App running on port ${port}.`)
