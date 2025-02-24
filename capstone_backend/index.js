@@ -4,6 +4,7 @@ const app = express()
 const port = 3001
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const sendEmail = require("./email")
 
 app.use(express.json())
 app.use(function (req, res, next) {
@@ -130,12 +131,16 @@ app.post("/user/register", async (req, res) => {
       return res.status(409).json({ message: "Username or email already exists", username: existingUser.username, userEmail: existingUser.email, userRoles: existingUser.roles });
     }
     const hashedPassword = await bcrypt.hash(password, 10)
+    const verificationToken = Math.floor(Math.random * 101)
+    await sendEmail(email, verificationToken)
     const newUser = {
       username,
       email,
       password: hashedPassword, // Add hashing later?
       createdAt: new Date(),
-      roles: req.body.roles || ["student"]  // Default to "student" role for now
+      roles: req.body.roles || ["student"],  // Default to "student" role for now
+      verified: false,
+      token: verificationToken
     };
 
     const result = await collection.insertOne(newUser);
@@ -144,6 +149,27 @@ app.post("/user/register", async (req, res) => {
   } catch (error) {
     console.error("Error registering user:", error);
     return res.status(500).send("Error registering user");
+  }
+});
+
+app.put("/user/verify", async (req, res) => {
+  try {
+    const collection = client.db('capstone-website').collection('users');
+    const { email, token } = req.body;
+    const user = await collection.findOne({ email, token });
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired token" });
+    }
+    await collection.updateOne(
+      {email},
+      {$set:{verified: true}} 
+    );
+
+    return res.status(200).json({ message: "Email verified successfully!" });
+  } catch (error) {
+    console.error("Error verifying email:", error);
+    return res.status(500).send("Error verifying email");
   }
 });
 
