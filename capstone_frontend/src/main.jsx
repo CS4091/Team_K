@@ -9,6 +9,7 @@ import ViewPostPage from './Pages/ViewPostPage';
 import { GlobalProvider } from './Context/GlobalContext';
 import { CreatePage } from './Pages/CreatePage';
 import UserPage from './Pages/UserPage';
+import MapPage from './Pages/MapPage';
 import ClubClassPage from './Pages/ClubClassPage';
 import CPage from './Pages/CPage';
 import CalendarPage from './Pages/CalendarPage';
@@ -37,6 +38,10 @@ const router = createBrowserRouter([
   {
     path: "/c/:cName",
     element: <CPage/>
+  },
+  {
+    path: "/Map",
+    element: <MapPage />
   },
   {
     path: "/calendar",

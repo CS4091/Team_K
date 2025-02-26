@@ -12,6 +12,7 @@ import { Add, Person } from '@mui/icons-material'
 import { useGlobalContext } from '../Context/GlobalContext'
 import { CalendarToday } from '@mui/icons-material';
 import UserModal from './UserModal'
+import MapIcon from '@mui/icons-material/Map';
 import {Menu} from '@mui/material'
 import{ MenuItem} from '@mui/material'
 
@@ -110,11 +111,17 @@ const TopBar = () => {
                                         <CalendarToday/>
                                 </IconButton>
                             </Tooltip>
+                            <Tooltip title={"Map"}>
+                                <IconButton color="inherit" variant="outlined" onClick={() => navigate('/map')}>
+                                    <MapIcon/>
+                                </IconButton>
+                            </Tooltip>
                             <Tooltip title={user.username ? user.username : "Sign in"}>
                                 <IconButton color="inherit" variant="outlined" onClick={() => handleUserClick()}>
                                     <Person/>
                                 </IconButton>
                             </Tooltip>
+
                         </div>
                     </div>
                 </Typography>
