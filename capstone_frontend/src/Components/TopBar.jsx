@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom'
 import { Autocomplete, IconButton, Tooltip, TextField } from '@mui/material'
 import { Add, Person } from '@mui/icons-material'
 import { useGlobalContext } from '../Context/GlobalContext'
+import { CalendarToday } from '@mui/icons-material';
 import UserModal from './UserModal'
 import {Menu} from '@mui/material'
 import{ MenuItem} from '@mui/material'
@@ -101,6 +102,13 @@ const TopBar = () => {
                                     <MenuItem onClick={() => navigate('/create')}>Create Post</MenuItem>
                                     <MenuItem onClick={() => navigate('/createClass')}>Create Club or Class</MenuItem>
                                 </Menu>
+                            </Tooltip>
+                            <Tooltip title="Calendar">
+                                <IconButton
+                                    color="inherit"
+                                    onClick={() => navigate('/calendar')}>
+                                        <CalendarToday/>
+                                </IconButton>
                             </Tooltip>
                             <Tooltip title={user.username ? user.username : "Sign in"}>
                                 <IconButton color="inherit" variant="outlined" onClick={() => handleUserClick()}>
