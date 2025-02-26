@@ -10,7 +10,7 @@ import { GlobalProvider } from './Context/GlobalContext';
 import { CreatePage } from './Pages/CreatePage';
 import UserPage from './Pages/UserPage';
 import ClassPage from './Pages/ClassPage';
-
+import MapPage from './Pages/MapPage';
 
 const router = createBrowserRouter([
   {
@@ -33,6 +33,14 @@ const router = createBrowserRouter([
     path: "/class/:cName",
     element: <ClassPage />
   },
+  {
+    path: "/Map",
+    element: <MapPage />
+  },
+
+
+
+
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
