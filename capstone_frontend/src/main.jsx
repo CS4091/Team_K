@@ -11,6 +11,7 @@ import { CreatePage } from './Pages/CreatePage';
 import UserPage from './Pages/UserPage';
 import ClubClassPage from './Pages/ClubClassPage';
 import CPage from './Pages/CPage';
+import CalendarPage from './Pages/CalendarPage';
 
 const router = createBrowserRouter([
   {
@@ -36,6 +37,10 @@ const router = createBrowserRouter([
   {
     path: "/c/:cName",
     element: <CPage/>
+  },
+  {
+    path: "/calendar",
+    element: <CalendarPage/>
   }
 ]);
 
