@@ -126,12 +126,13 @@ app.post("/user/register", async (req, res) => {
 
     const { username, email, password } = req.body;
 
-    const existingUser = await collection.findOne({ $or: [{ username }, { email }] });
-    if (existingUser) {
-      return res.status(409).json({ message: "Username or email already exists", username: existingUser.username, userEmail: existingUser.email, userRoles: existingUser.roles });
-    }
+    // const existingUser = await collection.findOne({ $or: [{ username }, { email }] });
+    // if (existingUser) {
+    //   return res.status(409).json({ message: "Username or email already exists", username: existingUser.username, userEmail: existingUser.email, userRoles: existingUser.roles });
+    // }
     const hashedPassword = await bcrypt.hash(password, 10)
-    const verificationToken = Math.floor(Math.random * 101)
+    const verificationToken = Math.floor(Math.random() * 900) + 100
+    console.log({verificationToken})
     await sendEmail(email, verificationToken)
     const newUser = {
       username,

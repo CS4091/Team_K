@@ -11,6 +11,7 @@ import { CreatePage } from './Pages/CreatePage';
 import UserPage from './Pages/UserPage';
 import ClubClassPage from './Pages/ClubClassPage';
 import CPage from './Pages/CPage';
+import VerifyPage from './Pages/VerifyPage';
 
 const router = createBrowserRouter([
   {
@@ -36,7 +37,11 @@ const router = createBrowserRouter([
   {
     path: "/c/:cName",
     element: <CPage/>
-  }
+  },
+  {
+    path: "/verify/:token",
+    element: <VerifyPage/>
+  },
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
