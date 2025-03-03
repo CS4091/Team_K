@@ -17,7 +17,7 @@ const sendEmail = async (userEmail, token) => {
                 <div>
                     <h2>Welcome to Our Website!</h2>
                     <p>Click the link below to verify your email:</p>
-                    <a href="http://localhost:5173/verify/${token}">https://localhost:5173/verify/${token}</a>
+                    <a href="http://localhost:5173/verify/${token}/email/${userEmail}">VERIFY</a>
                     <p>If you did not sign up, please ignore this email.</p>
                 </div>
                 `,

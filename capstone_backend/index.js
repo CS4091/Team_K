@@ -162,12 +162,12 @@ app.put("/user/verify", async (req, res) => {
     if (!user) {
       return res.status(400).json({ message: "Invalid or expired token" });
     }
-    await collection.updateOne(
+    const useer = await collection.updateOne(
       {email},
       {$set:{verified: true}} 
     );
 
-    return res.status(200).json({ message: "Email verified successfully!" });
+    return res.status(200).json({ message: "Email verified successfully!", user: useer });
   } catch (error) {
     console.error("Error verifying email:", error);
     return res.status(500).send("Error verifying email");

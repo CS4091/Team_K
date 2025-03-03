@@ -39,7 +39,7 @@ const router = createBrowserRouter([
     element: <CPage/>
   },
   {
-    path: "/verify/:token",
+    path: "/verify/:token/email/:email",
     element: <VerifyPage/>
   },
 ]);
