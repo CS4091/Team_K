@@ -157,17 +157,17 @@ app.put("/user/verify", async (req, res) => {
   try {
     const collection = client.db('capstone-website').collection('users');
     const { email, token } = req.body;
-    const user = await collection.findOne({ email, token });
+    // const user = await collection.findOne({ email, token });
 
-    if (!user) {
-      return res.status(400).json({ message: "Invalid or expired token" });
-    }
-    const useer = await collection.updateOne(
-      {email},
-      {$set:{verified: true}} 
-    );
-
-    return res.status(200).json({ message: "Email verified successfully!", user: useer });
+    // if (!user) {
+    //   return res.status(400).json({ message: "Invalid or expired token" });
+    // }
+    // const useer = await collection.updateOne(
+    //   {email},
+    //   {$set:{verified: true}} 
+    // );
+    const user = await collection.findOneAndUpdate({"email": email, "token": token}, {$set:{verified: true}}, {returnDocument: "after"})
+    return res.status(200).json({ message: "Email verified successfully!", user: user });
   } catch (error) {
     console.error("Error verifying email:", error);
     return res.status(500).send("Error verifying email");

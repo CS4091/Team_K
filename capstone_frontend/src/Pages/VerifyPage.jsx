@@ -1,10 +1,14 @@
 import React, { useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useGlobalContext } from '../Context/GlobalContext'
+import { ThemeProvider } from '@emotion/react'
+import TopBar from '../Components/TopBar'
+import UserModal from '../Components/UserModal'
 
 const VerifyPage = () => {
     const {token, email} = useParams()
-    const {user, setUser} = useGlobalContext()
+    const {user, setUser, theme, isModalOpen, setIsModalOpen, setIsSnackOpen, setSnackMessage} = useGlobalContext()
+    const navigate = useNavigate()
 
     const verify = async () => {
         const user = {
@@ -20,10 +24,14 @@ const VerifyPage = () => {
         });
         
         if(!response.ok) {
-            //do something
+            setSnackMessage("Unable to verify")
+        } else{
+            const result = await response.json()
+            setUser(result.user)
+            setSnackMessage("Successfully verifies and signed in")
         }
-        const result = await response.json()
-        console.log(result)
+        setIsSnackOpen(true)
+        navigate("/")
     }
 
     useEffect(() => {
@@ -31,8 +39,12 @@ const VerifyPage = () => {
     }, [])
 
     return (
-        <div>VerifyPage
-            <h3>{token} {email}</h3>
+        <div>
+            <ThemeProvider theme={theme}>
+                <TopBar/>
+                <h3>{token} {email}</h3>
+                <UserModal isOpen={isModalOpen} setIsOpen={setIsModalOpen}/>
+            </ThemeProvider>
         </div>
     )
 }
