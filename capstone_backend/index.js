@@ -368,17 +368,22 @@ app.get('/posts/club/:clubName', async (req, res) => {
 app.get("/posts/getRecent", async (req, res) => {
   try {
     const collection = client.db('capstone-website').collection('posts')
+    const limit = parseInt(req.query.limit) || 4
+    const totalPostCount = await collection.countDocuments();
     const recentPosts = await collection
       .find({})
       .sort({ createdAt: -1 }) 
-      .limit(10) 
+      .limit(limit) 
       .toArray()
 
     if (recentPosts.length === 0) {
       return res.status(404).json({ message: "No posts found" })
     }
-
-    res.status(200).json(recentPosts)
+    const response = { posts: recentPosts, total: totalPostCount};
+    res.status(200).json(response);
+    
+    
+    
   } catch (error) {
     console.error("Error fetching recent posts:", error)
     res.status(500).send("Error fetching recent posts")
