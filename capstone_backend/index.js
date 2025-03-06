@@ -73,7 +73,8 @@ app.post("/post", async (req, res) => {
       date: req.body.date || new Date(),  // Default to the current date if not provided
       comments: req.body.comments || [],  // Default to an empty array if no comments
       class: req.body.class || "",
-      club: req.body.club || ""
+      club: req.body.club || "",
+      pin: req.body.pin || false,
     }
 
     // Insert the new post into the 'post' collection
@@ -100,7 +101,8 @@ app.put("/post/:postId", async (req, res) => {
       date: req.body.date,
       comments: req.body.comments,
       class: req.body.class,
-      club: req.body.club
+      club: req.body.club,
+      pin: req.body.pin,
     };
 
     const result = await collection.updateOne(

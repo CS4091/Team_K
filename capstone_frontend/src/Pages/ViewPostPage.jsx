@@ -7,6 +7,8 @@ import Upvote from '../Components/Upvote';
 import OutlinedTextarea from '../Components/TextArea';
 import { useNavigate, useParams } from 'react-router-dom';
 import UserModal from '../Components/UserModal'
+import { IconButton } from '@mui/material';
+import PinIcon from '@mui/icons-material/PushPin';
 
 const ViewPostPage = () => {
     const {theme, isModalOpen, setIsModalOpen} = useGlobalContext()
@@ -18,6 +20,21 @@ const ViewPostPage = () => {
         const response = await fetch(`http://localhost:3001/post/${_id}`)
         const posts = await response.json()
         setPost(posts[0])
+    }
+
+    const handlePin = async () => {
+        const newPost = { ...post, pin: !post.pin }
+        const response = await fetch(`http://localhost:3001/post/${_id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(newPost),
+        });
+        const doc = await response.json()
+        if (doc.message === 'Post pinned successfully' || doc.message === 'Post unpinned successfully') {
+            setPost(newPost) // Update local state to reflect the pinned status
+        }
     }
 
     useEffect(() => {
@@ -52,7 +69,12 @@ const ViewPostPage = () => {
                             )
                             }
                         </div>
-                        <div class="text-3xl"> <b>{post.title}</b></div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div className="text-3xl"><b>{post.title}</b></div>
+                                <IconButton onClick={handlePin} aria-label="pin">
+                                    <PinIcon color={post.pin ? "error" : "action"} /> {/* Red pin if pinned */}
+                                </IconButton>
+                            </div>
                         <div class="pt-4 ">{post.text}</div>
                         <div class="pt-8 "><Upvote post={post} setPost={setPost} commentText={""}/></div>
                         <div class="pt-4"><b>Enter your comment:</b></div>
