@@ -53,7 +53,8 @@ const UserModal = ({isOpen, setIsOpen}) => {
             setUser({
                 username: data.username,
                 userEmail: data.userEmail,
-                userRoles: data.userRoles
+                userRoles: data.userRoles,
+                _id: data._id
             })
             setIsOpen(false)
         } else {
