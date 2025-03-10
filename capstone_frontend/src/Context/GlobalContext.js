@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import {  createTheme} from '@mui/material/styles'
+import { useCookies } from 'react-cookie';
 
 const GlobalContext = createContext();
 
@@ -34,6 +35,7 @@ export const GlobalProvider = ({children}) => {
     const [cPosts, setCPosts] = useState([])
     const [cObject, setCObject] = useState({})
     const [allC, setAllC] = useState([])
+    const [cookies, setCookie, removeCookie] = useCookies(['user'])
 
     const getAllClasses = async () => {
       const response = await fetch("http://localhost:3001/both/getAll");
@@ -43,13 +45,20 @@ export const GlobalProvider = ({children}) => {
       setAllC([...both.classes, ...both.clubs])
   }
 
+  const checkUser = () => {
+    if (cookies.user) {
+      setUser(cookies.user)
+    }
+  }
+
   useEffect(() => {
       getAllClasses()
+      checkUser()
   }, [])
 
     return React.createElement(
         GlobalContext.Provider,
-        { value: {theme, setTheme, user, setUser, isModalOpen, setIsModalOpen, allClasses, setAllClasses, searched, setSearched, isSnackOpen, setIsSnackOpen, snackMessage, setSnackMessage, allClubs, setAllClubs, cPosts, setCPosts, cObject, setCObject, allC } },
+        { value: {theme, setTheme, user, setUser, isModalOpen, setIsModalOpen, allClasses, setAllClasses, searched, setSearched, isSnackOpen, setIsSnackOpen, snackMessage, setSnackMessage, allClubs, setAllClubs, cPosts, setCPosts, cObject, setCObject, allC, cookies, setCookie, removeCookie } },
         children
       );
     

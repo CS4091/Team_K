@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react'
 import { useGlobalContext } from '../Context/GlobalContext';
 // import axios from 'axios';
 import { Snackbar } from '@mui/material'
+import { useCookies } from 'react-cookie';
 
 const style = {
     position: 'absolute',
@@ -20,13 +21,18 @@ const style = {
   };
   
 const UserModal = ({isOpen, setIsOpen}) => {
-    const {user, setUser} = useGlobalContext()
+    const {user, setUser, cookies, setCookie, removeCookie} = useGlobalContext()
     const [tempName, setTempName] = useState('')
     const [tempPass, setTempPass] = useState('')
     const [tempEmail, setTempEmail] = useState('')
     const [isSnackOpen, setIsSnackOpen] = useState(false)
     const [snackMessage, setSnackMessage] = useState("")
     const [create, setCreate] = useState(false)
+    // const [cookies, setCookie, removeCookie] = useCookies(['user'])
+
+    useEffect(() => {
+        console.log({cookies})
+    }, [cookies])
 
     const handleSignIn = async () => {
         const response = await fetch("http://localhost:3001/user/login", {
@@ -50,12 +56,14 @@ const UserModal = ({isOpen, setIsOpen}) => {
         } else if (data.message == "Login successful"){
             setSnackMessage("Login successful")
             setIsSnackOpen(true)
-            setUser({
+            const curUser = {
                 username: data.username,
                 userEmail: data.userEmail,
                 userRoles: data.userRoles,
                 _id: data._id
-            })
+            }
+            setUser(curUser)
+            setCookie('user', curUser)
             setIsOpen(false)
         } else {
             setSnackMessage("Error logging in")
