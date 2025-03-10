@@ -5,10 +5,11 @@ import TopBar from '../Components/TopBar'
 import UserModal from '../Components/UserModal'
 import PostCard from '../Components/PostCard'
 import { Typography, Box, Grid, TextField, Button } from '@mui/material'
+import {Snackbar} from '@mui/material'
 
 const LandingPage = () => {
     //use javascript up here
-    const {theme, isModalOpen, setIsModalOpen} = useGlobalContext()
+    const {theme, isModalOpen, setIsModalOpen, isSnackOpen, snackMessage, setIsSnackOpen} = useGlobalContext()
     const [recentPosts, setRecentPosts] = useState([])
     const [searchText, setSearchText] = useState("")
 
@@ -76,7 +77,7 @@ const LandingPage = () => {
             </>)}
            
             
-            
+            <Snackbar open={isSnackOpen} autoHideDuration={3000} onClose={() => setIsSnackOpen(false)} anchorOrigin={{vertical: 'bottom', horizontal: 'center'}} message={snackMessage}/>
             </ThemeProvider>
             <UserModal isOpen={isModalOpen} setIsOpen={setIsModalOpen}/>
         </div>

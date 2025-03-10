@@ -39,8 +39,14 @@ export const CreatePage = () => {
         setSnackMessage('Post created successfully')
         setIsSnackOpen(true)
         const result = await response.json();
-
     }
+
+    useEffect(() => {
+        if (!user.verified) {
+            setSnackMessage('Must be verified to create posts. You can resend verification email in your profile page.')
+            setIsSnackOpen(true)
+        }
+    }, [user])
 
 
     return (
@@ -100,7 +106,7 @@ export const CreatePage = () => {
                     </FormControl>
                         <Box display="flex" justifyContent="flex-begin" sx={{ mt: 3 }}>
                             <Button variant="outlined" onClick={() => {setText(""); setTitle("")}}>Cancel</Button>
-                            <Button variant="contained" disabled={(!user.username || !text || !title)} sx={{ ml : 1 }} onClick={() => handleSubmit()}>Submit</Button>
+                            <Button variant="contained" disabled={(!user.username || !text || !title || !user.verified)} sx={{ ml : 1 }} onClick={() => handleSubmit()}>Submit</Button>
                         </Box>
                     </div>
                 <UserModal isOpen={isModalOpen} setIsOpen={setIsModalOpen}/>
