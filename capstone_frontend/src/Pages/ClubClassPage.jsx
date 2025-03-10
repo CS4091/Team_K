@@ -18,9 +18,6 @@ const ClubClassPage = () => {
     const [clubImportantPeople, setImportantPeople] = useState([])
     const [checked, setChecked] = useState(false)
     const [allUsers, setAllUsers] = useState([])
-    //TODO make club president a select yourself or autocomplete to select from users?
-    //make autocomplete for other important people??
-    //add club to search and create post page now
 
 
     const handleSubmitClass = async () => {
