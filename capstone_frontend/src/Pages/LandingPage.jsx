@@ -7,8 +7,7 @@ import PostCard from '../Components/PostCard'
 import { Typography, Box, Grid, TextField, Button } from '@mui/material'
 
 const LandingPage = () => {
-    //use javascript up here
-    const {theme, isModalOpen, setIsModalOpen} = useGlobalContext()
+    const {theme, isModalOpen, setIsModalOpen, user} = useGlobalContext()
     const [recentPosts, setRecentPosts] = useState([])
     const [searchText, setSearchText] = useState("")
 
@@ -67,7 +66,7 @@ const LandingPage = () => {
                 {recentPosts.map((post, index) => {
                     return (
                         <Grid item xs={12} key={index}>
-                            <PostCard post={post}/>
+                            <PostCard post={post} hidepin={true} />
                         </Grid>
                     )
                 })}

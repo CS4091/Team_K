@@ -6,7 +6,7 @@ import PinIcon from '@mui/icons-material/PushPin'
 import { useNavigate } from 'react-router-dom'
 import { useGlobalContext } from '../Context/GlobalContext'
 
-const PostCard = ({ post}) => {
+const PostCard = ({ post, hidepin}) => {
     const navigate = useNavigate()
     const { user, setIsSnackOpen, setSnackMessage } = useGlobalContext()
 
@@ -27,6 +27,12 @@ const PostCard = ({ post}) => {
 
 // new function for pin function
     const handlePin = async () => {
+        if (!user.username) {
+            setIsSnackOpen(true);
+            setSnackMessage('You must be logged in to pin a post!');
+            return;
+        }
+
         const newpost = {...post, pin: !post.pin}
         console.log({newpost})
         const response = await fetch(`http://localhost:3001/post/${post._id}`, {
@@ -71,14 +77,15 @@ const PostCard = ({ post}) => {
                             <Typography variant='body-2'>Comments: {post?.comments?.length}</Typography>
                         </Box>
                         <Box sx={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                            {/* Pin Button */}
-                            <IconButton
-                                onClick={handlePin}
-                                aria-label="pin"
-                            >
-                                <PinIcon color={post.pin ? "error" : "action"} /> {/* red pin cause ye */}
-                            </IconButton>
-
+                            {/* Conditionally render Pin button */}
+                            {!hidepin && user?.username && (
+                                <IconButton
+                                    onClick={handlePin}
+                                    aria-label="pin"
+                                >
+                                    <PinIcon color={post.pin ? "error" : "action"} /> {/* red pin cause ye */}
+                                </IconButton>
+                            )}
                             {/* Navigate Button */}
                             <IconButton sx={{ alignItems: 'right' }} onClick={() => navigate(`/post/${post._id}`)}>
                                 <ArrowForwardIcon />

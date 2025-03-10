@@ -23,6 +23,12 @@ const ViewPostPage = () => {
     }
 
     const handlePin = async () => {
+        if (!user.username) {
+            setIsSnackOpen(true);
+            setSnackMessage('You must be logged in to pin a post!');
+            return;
+        }
+
         const newPost = { ...post, pin: !post.pin }
         const response = await fetch(`http://localhost:3001/post/${_id}`, {
             method: "PUT",
@@ -71,6 +77,7 @@ const ViewPostPage = () => {
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div className="text-3xl"><b>{post.title}</b></div>
+                                
                                 <IconButton onClick={handlePin} aria-label="pin">
                                     <PinIcon color={post.pin ? "error" : "action"} /> {/* Red pin if pinned */}
                                 </IconButton>
