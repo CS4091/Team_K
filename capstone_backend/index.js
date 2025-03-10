@@ -129,13 +129,12 @@ app.post("/user/register", async (req, res) => {
     if (!email.endsWith(".edu")) {
       return res.status(400).json({ message: "Only school emails are allowed for registration" });
     }
-    // const existingUser = await collection.findOne({ $or: [{ username }, { email }] });
-    // if (existingUser) {
-    //   return res.status(409).json({ message: "Username or email already exists", username: existingUser.username, userEmail: existingUser.email, userRoles: existingUser.roles });
-    // }
+    const existingUser = await collection.findOne({ $or: [{ username }, { email }] });
+    if (existingUser) {
+      return res.status(409).json({ message: "Username or email already exists", username: existingUser.username, userEmail: existingUser.email, userRoles: existingUser.roles });
+    }
     const hashedPassword = await bcrypt.hash(password, 10)
     const verificationToken = Math.floor(Math.random() * 900) + 100
-    console.log({verificationToken})
     await sendEmail(email, verificationToken)
     const newUser = {
       username,
@@ -190,15 +189,6 @@ app.put("/user/verify", async (req, res) => {
   try {
     const collection = client.db('capstone-website').collection('users');
     const { email, token } = req.body;
-    // const user = await collection.findOne({ email, token });
-
-    // if (!user) {
-    //   return res.status(400).json({ message: "Invalid or expired token" });
-    // }
-    // const useer = await collection.updateOne(
-    //   {email},
-    //   {$set:{verified: true}} 
-    // );
     const user = await collection.findOneAndUpdate({"email": email, "token": token}, {$set:{verified: true}}, {returnDocument: "after"})
     return res.status(200).json({ message: "Email verified successfully!", user: user });
   } catch (error) {

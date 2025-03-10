@@ -9,7 +9,7 @@ import PostCard from '../Components/PostCard'
 
 const UserPage = () => {
     const { userId } = useParams()
-    const { user, theme, isModalOpen, setIsModalOpen, isSnackOpen, snackMessage, setIsSnackOpen } = useGlobalContext()
+    const { user, theme, isModalOpen, setIsModalOpen, isSnackOpen, snackMessage, setIsSnackOpen, setSnackMessage } = useGlobalContext()
     const [userPosts, setUserPosts] = useState([])
 
     const getUserPosts = async () => {
@@ -25,7 +25,7 @@ const UserPage = () => {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ email: user.email })
+                body: JSON.stringify({ email: user.userEmail })
             })
             const result = await response.json();
             if (response.ok) {
@@ -52,6 +52,13 @@ const UserPage = () => {
                 {user.username ? (
                     <div>
                         <Typography variant='h3'>Posts for: {user.username}</Typography>
+                        <Button 
+                            variant="contained" 
+                            color="primary" 
+                            onClick={resendVerificationEmail}
+                        >
+                            Resend Verification Email
+                        </Button>
                         {userPosts.length > 0 ? (
                             <Grid container spacing={3}>
                                 {userPosts.map((post, index) => {
@@ -65,14 +72,6 @@ const UserPage = () => {
                         ) : (
                             <>No posts found</>
                         )}
-
-                        <Button 
-                            variant="contained" 
-                            color="primary" 
-                            onClick={resendVerificationEmail}
-                        >
-                            Resend Verification Email
-                        </Button>
                     </div>
                 ) : (
                     <div>

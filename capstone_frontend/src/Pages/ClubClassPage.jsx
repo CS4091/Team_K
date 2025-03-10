@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, {useState, useEffect} from 'react'
 import { useGlobalContext } from '../Context/GlobalContext'
 import { ThemeProvider } from '@emotion/react'
 import TopBar from '../Components/TopBar'
@@ -68,6 +68,13 @@ const ClubClassPage = () => {
         const result = await response.json()
     }
 
+    useEffect(() => {
+            if (!user.verified) {
+                setSnackMessage('Must be verified to create posts. You can resend verification email in your profile page.')
+                setIsSnackOpen(true)
+            }
+    }, [user])
+
     return (
         <div>
             <ThemeProvider theme={theme}>
@@ -113,7 +120,7 @@ const ClubClassPage = () => {
                         </FormControl>
                         <Box display="flex" justifyContent="flex-begin" sx={{ mt: 3 }}>
                             <Button variant="outlined" onClick={() => {setClubName(""); setClubDescription(""); setClubPresident("")}}>Cancel</Button>
-                            <Button variant="contained" disabled={(!user.username || !clubDescription || !clubName)} sx={{ ml : 1 }} onClick={() => handleSubmitClub()}>Submit</Button>
+                            <Button variant="contained" disabled={(!user.username || !clubDescription || !clubName || !user.verified)} sx={{ ml : 1 }} onClick={() => handleSubmitClub()}>Submit</Button>
                         </Box>
                     </div>
                     <div class="col-span-1 mr-8">
@@ -155,7 +162,7 @@ const ClubClassPage = () => {
                         </FormControl>
                         <Box display="flex" justifyContent="flex-begin" sx={{ mt: 3 }}>
                             <Button variant="outlined" onClick={() => {setClassDepartment(""); setNewClassName(""); setNewClassNum(2500)}}>Cancel</Button>
-                            <Button variant="contained" disabled={(!user.username || !classDepartment || !newClassName || !newClassNum)} sx={{ ml : 1 }} onClick={() => handleSubmitClass()}>Submit</Button>
+                            <Button variant="contained" disabled={(!user.username || !classDepartment || !newClassName || !newClassNum || !user.verified)} sx={{ ml : 1 }} onClick={() => handleSubmitClass()}>Submit</Button>
                         </Box>
                     </div>
                 </div>

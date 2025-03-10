@@ -22,13 +22,12 @@ const VerifyPage = () => {
             },
             body: JSON.stringify(user),
         });
-        
         if(!response.ok) {
             setSnackMessage("Unable to verify")
         } else{
             const result = await response.json()
             setUser(result.user)
-            setSnackMessage("Successfully verifies and signed in")
+            setSnackMessage("Successfully verified and signed in")
         }
         setIsSnackOpen(true)
         navigate("/")
