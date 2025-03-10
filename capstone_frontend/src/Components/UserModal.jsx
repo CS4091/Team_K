@@ -28,7 +28,6 @@ const UserModal = ({isOpen, setIsOpen}) => {
     const [isSnackOpen, setIsSnackOpen] = useState(false)
     const [snackMessage, setSnackMessage] = useState("")
     const [create, setCreate] = useState(false)
-    // const [cookies, setCookie, removeCookie] = useCookies(['user'])
 
     useEffect(() => {
         console.log({cookies})
