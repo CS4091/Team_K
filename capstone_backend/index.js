@@ -219,7 +219,8 @@ app.post("/user/login", async (req, res) => {
         message: "Login successful",
         username: user.username,
         userRoles: user.roles,
-        userEmail: user.email
+        userEmail: user.email,
+        _id: user._id
       })
     } catch (error) {
       console.error("Error during login:", error)
@@ -310,6 +311,18 @@ app.get("/both/getAll", async (req, res) => {
     res.status(500).send("Error fetching clubses")
   }
 })
+
+app.get("/user/getAll", async (req, res) => {
+  try {
+    const collection = client.db('capstone-website').collection('users');
+    const users = await collection.find({}, { projection: { username: 1, email: 1, _id: 1 } }).toArray();
+
+    return res.status(200).json(users);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    return res.status(500).send("Error fetching users");
+  }
+});
 
 app.delete("/post/:postId", async (req, res) => {
   try {

@@ -9,9 +9,11 @@ import ViewPostPage from './Pages/ViewPostPage';
 import { GlobalProvider } from './Context/GlobalContext';
 import { CreatePage } from './Pages/CreatePage';
 import UserPage from './Pages/UserPage';
+import MapPage from './Pages/MapPage';
 import ClubClassPage from './Pages/ClubClassPage';
 import CPage from './Pages/CPage';
 import VerifyPage from './Pages/VerifyPage';
+import CalendarPage from './Pages/CalendarPage';
 
 const router = createBrowserRouter([
   {
@@ -42,6 +44,14 @@ const router = createBrowserRouter([
     path: "/verify/:token/email/:email",
     element: <VerifyPage/>
   },
+  {
+    path: "/Map",
+    element: <MapPage/>
+  },
+  {
+    path: "/calendar",
+    element: <CalendarPage/>
+  }
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
