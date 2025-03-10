@@ -126,6 +126,9 @@ app.post("/user/register", async (req, res) => {
 
     const { username, email, password } = req.body;
 
+    if (!email.endsWith(".edu")) {
+      return res.status(400).json({ message: "Only school emails are allowed for registration" });
+    }
     // const existingUser = await collection.findOne({ $or: [{ username }, { email }] });
     // if (existingUser) {
     //   return res.status(409).json({ message: "Username or email already exists", username: existingUser.username, userEmail: existingUser.email, userRoles: existingUser.roles });
@@ -150,6 +153,36 @@ app.post("/user/register", async (req, res) => {
   } catch (error) {
     console.error("Error registering user:", error);
     return res.status(500).send("Error registering user");
+  }
+});
+
+app.post("/user/resend-verification", async (req, res) => {
+  try {
+    const collection = client.db("capstone-website").collection("users");
+    const { email } = req.body;
+
+    const user = await collection.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.verified) {
+      return res.status(400).json({ message: "User is already verified" });
+    }
+
+    const verificationToken = Math.floor(Math.random() * 900) + 100;
+    await sendEmail(email, verificationToken);
+
+    await collection.updateOne(
+      { email },
+      { $set: { token: verificationToken } }
+    );
+
+    res.status(200).json({ message: "Verification email resent successfully" });
+  } catch (error) {
+    console.error("Error resending verification email:", error);
+    res.status(500).send("Error resending verification email");
   }
 });
 
