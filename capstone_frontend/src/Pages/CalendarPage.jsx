@@ -22,7 +22,10 @@ const localizer = dateFnsLocalizer({
 });
 
 // Custom Agenda Event Display
-const CustomAgendaEvent = ({ event, selectedEvent, onEdit, onDelete }) => {
+const CustomAgendaEvent = ({ event, selectedEvent, onEdit, onDelete, searchTerm }) => {
+    if (searchTerm && !event.title.toLowerCase().includes(searchTerm.toLowerCase())) {
+        return null; // Hide events that don’t match search
+    }
     return (
         <div
             id={`event-${event.id}`}
@@ -59,6 +62,8 @@ const CalendarPage = () => {
     const { theme } = useGlobalContext();
     const [events, setEvents] = useState([]);
     const [view, setView] = useState(Views.MONTH);
+    const [filteredEvents, setFilteredEvents] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');  //set ups search term
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [modalOpen, setModalOpen] = useState(false);
     const [modalData, setModalData] = useState({
@@ -91,6 +96,26 @@ const CalendarPage = () => {
             }, 300);
         }
     }, [view, selectedEvent]);
+
+    const handleSearch = (e) => {
+        e.preventDefault();
+        const filtered = events.filter(event =>
+            event.title.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        setFilteredEvents(filtered);
+    };
+    
+    useEffect(() => {
+        if (!searchTerm) {
+            setFilteredEvents(events); // Show all events when search is empty
+        } else {
+            const filtered = events.filter(event =>
+                event.title.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            setFilteredEvents(filtered);
+        }
+    }, [searchTerm, events, view]); // Also re-run when `view` changes
+    
 
     // Open the edit modal
     const handleEditClick = (event) => {
@@ -165,9 +190,18 @@ const CalendarPage = () => {
             <div>
                 <TopBar />
                 <div className="p-4">
+                    <TextField 
+                        label="Search Events" 
+                        variant="outlined" 
+                        fullWidth 
+                        value={searchTerm} 
+                        onChange={(e) => setSearchTerm(e.target.value)} 
+                        margin="normal"
+                    />
+                    <Button type="submit" variant="contained" color="primary">Search</Button>
                     <Calendar
                         localizer={localizer}
-                        events={events}
+                        events={filteredEvents}
                         startAccessor="start"
                         endAccessor="end"
                         view={view}
@@ -189,6 +223,7 @@ const CalendarPage = () => {
                                         selectedEvent={selectedEvent} 
                                         onEdit={handleEditClick}
                                         onDelete={handleDeleteEvent}
+                                        searchTerm={searchTerm}
                                     />
                                 )
                             },
