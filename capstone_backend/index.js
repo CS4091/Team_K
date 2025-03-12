@@ -4,6 +4,7 @@ const app = express()
 const port = 3001
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const sendEmail = require("./email")
 
 app.use(express.json())
 app.use(function (req, res, next) {
@@ -127,17 +128,24 @@ app.post("/user/register", async (req, res) => {
 
     const { username, email, password } = req.body;
 
+    if (!email.endsWith(".edu")) {
+      return res.status(400).json({ message: "Only school emails are allowed for registration" });
+    }
     const existingUser = await collection.findOne({ $or: [{ username }, { email }] });
     if (existingUser) {
       return res.status(409).json({ message: "Username or email already exists", username: existingUser.username, userEmail: existingUser.email, userRoles: existingUser.roles });
     }
     const hashedPassword = await bcrypt.hash(password, 10)
+    const verificationToken = Math.floor(Math.random() * 900) + 100
+    await sendEmail(email, verificationToken)
     const newUser = {
       username,
       email,
       password: hashedPassword, // Add hashing later?
       createdAt: new Date(),
-      roles: req.body.roles || ["student"]  // Default to "student" role for now
+      roles: req.body.roles || ["student"],  // Default to "student" role for now
+      verified: false,
+      token: verificationToken
     };
 
     const result = await collection.insertOne(newUser);
@@ -146,6 +154,48 @@ app.post("/user/register", async (req, res) => {
   } catch (error) {
     console.error("Error registering user:", error);
     return res.status(500).send("Error registering user");
+  }
+});
+
+app.post("/user/resend-verification", async (req, res) => {
+  try {
+    const collection = client.db("capstone-website").collection("users");
+    const { email } = req.body;
+
+    const user = await collection.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.verified) {
+      return res.status(400).json({ message: "User is already verified" });
+    }
+
+    const verificationToken = Math.floor(Math.random() * 900) + 100;
+    await sendEmail(email, verificationToken);
+
+    await collection.updateOne(
+      { email },
+      { $set: { token: verificationToken } }
+    );
+
+    res.status(200).json({ message: "Verification email resent successfully" });
+  } catch (error) {
+    console.error("Error resending verification email:", error);
+    res.status(500).send("Error resending verification email");
+  }
+});
+
+app.put("/user/verify", async (req, res) => {
+  try {
+    const collection = client.db('capstone-website').collection('users');
+    const { email, token } = req.body;
+    const user = await collection.findOneAndUpdate({"email": email, "token": token}, {$set:{verified: true}}, {returnDocument: "after"})
+    return res.status(200).json({ message: "Email verified successfully!", user: user });
+  } catch (error) {
+    console.error("Error verifying email:", error);
+    return res.status(500).send("Error verifying email");
   }
 });
 
@@ -171,7 +221,8 @@ app.post("/user/login", async (req, res) => {
         message: "Login successful",
         username: user.username,
         userRoles: user.roles,
-        userEmail: user.email
+        userEmail: user.email,
+        _id: user._id
       })
     } catch (error) {
       console.error("Error during login:", error)
@@ -262,6 +313,18 @@ app.get("/both/getAll", async (req, res) => {
     res.status(500).send("Error fetching clubses")
   }
 })
+
+app.get("/user/getAll", async (req, res) => {
+  try {
+    const collection = client.db('capstone-website').collection('users');
+    const users = await collection.find({}, { projection: { username: 1, email: 1, _id: 1 } }).toArray();
+
+    return res.status(200).json(users);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    return res.status(500).send("Error fetching users");
+  }
+});
 
 app.delete("/post/:postId", async (req, res) => {
   try {

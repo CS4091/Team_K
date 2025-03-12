@@ -1,9 +1,9 @@
-import React, {useState} from 'react'
+import React, {useState, useEffect} from 'react'
 import { useGlobalContext } from '../Context/GlobalContext'
 import { ThemeProvider } from '@emotion/react'
 import TopBar from '../Components/TopBar'
 import UserModal from '../Components/UserModal'
-import { FormControl, OutlinedInput, TextareaAutosize, Box, Button, Snackbar } from '@mui/material'
+import { FormControl, OutlinedInput, TextareaAutosize, Box, Button, Snackbar, Autocomplete, TextField } from '@mui/material'
 
 const ClubClassPage = () => {
     const {theme, isModalOpen, setIsModalOpen, user } = useGlobalContext()
@@ -15,6 +15,9 @@ const ClubClassPage = () => {
     const [clubName, setClubName] = useState("")
     const [clubDescription, setClubDescription] = useState("")
     const [clubPresident, setClubPresident] = useState("")
+    const [clubImportantPeople, setImportantPeople] = useState([])
+    const [checked, setChecked] = useState(false)
+    const [allUsers, setAllUsers] = useState([])
     //TODO make club president a select yourself or autocomplete to select from users?
     //make autocomplete for other important people??
     //add club to search and create post page now
@@ -44,12 +47,22 @@ const ClubClassPage = () => {
     }
 
     const handleSubmitClub = async () => { 
+        let realPresident = {}
+        if (checked) {
+            realPresident = {
+                username: user.username,
+                email: user.userEmail,
+                _id: user._id
+            }
+        }else {
+            realPresident = clubPresident
+        }
         const newClass = {
             name : clubName,
             description: clubDescription,
-            creater: user.username,
-            president: clubPresident,
-            importantPeople: [],
+            creator: user.username,
+            president: realPresident,
+            importantPeople: clubImportantPeople,
         }
         const response = await fetch('http://localhost:3001/club/add',{
             method: 'POST',
@@ -67,6 +80,23 @@ const ClubClassPage = () => {
         setIsSnackOpen(true)
         const result = await response.json()
     }
+
+    useEffect(() => {
+            if (!user.verified) {
+                setSnackMessage('Must be verified to create posts. You can resend verification email in your profile page.')
+                setIsSnackOpen(true)
+            }
+    }, [user])
+    
+    const getAllUsers = async () => {
+        const response = await fetch(`http://localhost:3001/user/getAll`)
+        const users = await response.json()
+        setAllUsers(users)
+    }
+
+    useEffect(() => {
+        getAllUsers()
+    }, [])
 
     return (
         <div>
@@ -92,7 +122,7 @@ const ClubClassPage = () => {
                             <OutlinedInput 
                                 className='ml-1'
                                 inputComponent={TextareaAutosize} 
-                                placeholder='......'
+                                placeholder='Enter Description Here'
                                 notched
                                 inputProps={{minRows:1}}
                                 value={clubDescription}
@@ -100,20 +130,30 @@ const ClubClassPage = () => {
                                 >
                             </OutlinedInput>
                             <h3 className="text-xl mt-8 ml-1">President</h3> 
-                            <OutlinedInput 
-                                className='ml-1'
-                                inputComponent={TextareaAutosize} 
-                                placeholder='Enter a name'
-                                notched
-                                inputProps={{minRows:1}}
-                                value={clubPresident}
-                                onChange={(e) => setClubPresident(e.target.value)}
-                                >
-                            </OutlinedInput>
+                            <label className="ml-1">
+                                Put yourself as President: <input type="checkbox" checked={checked} onChange={() => setChecked(!checked)}></input>
+                            </label>
+                            <Autocomplete
+                                disabled={checked}
+                                color='primary'
+                                options={allUsers}
+                                getOptionLabel={(option) => option.username}
+                                renderInput={(params) => <TextField {...params} label="Search User" variant="outlined" />}
+                                onChange={(event, value) => setClubPresident(value)}
+                            />
+                            <h3 className="text-xl mt-8 ml-1">Other Important People</h3> 
+                            <Autocomplete 
+                                multiple
+                                color='primary'
+                                options={allUsers}
+                                getOptionLabel={(option) => option.username}
+                                renderInput={(params) => <TextField {...params} label="Search Users" variant="outlined" />}
+                                onChange={(event, value) => setImportantPeople(value)}
+                            />
                         </FormControl>
                         <Box display="flex" justifyContent="flex-begin" sx={{ mt: 3 }}>
                             <Button variant="outlined" onClick={() => {setClubName(""); setClubDescription(""); setClubPresident("")}}>Cancel</Button>
-                            <Button variant="contained" disabled={(!user.username || !clubDescription || !clubName)} sx={{ ml : 1 }} onClick={() => handleSubmitClub()}>Submit</Button>
+                            <Button variant="contained" disabled={(!user.username || !clubDescription || !clubName || !user.verified)} sx={{ ml : 1 }} onClick={() => handleSubmitClub()}>Submit</Button>
                         </Box>
                     </div>
                     <div class="col-span-1 mr-8">
@@ -155,7 +195,7 @@ const ClubClassPage = () => {
                         </FormControl>
                         <Box display="flex" justifyContent="flex-begin" sx={{ mt: 3 }}>
                             <Button variant="outlined" onClick={() => {setClassDepartment(""); setNewClassName(""); setNewClassNum(2500)}}>Cancel</Button>
-                            <Button variant="contained" disabled={(!user.username || !classDepartment || !newClassName || !newClassNum)} sx={{ ml : 1 }} onClick={() => handleSubmitClass()}>Submit</Button>
+                            <Button variant="contained" disabled={(!user.username || !classDepartment || !newClassName || !newClassNum || !user.verified)} sx={{ ml : 1 }} onClick={() => handleSubmitClass()}>Submit</Button>
                         </Box>
                     </div>
                 </div>
