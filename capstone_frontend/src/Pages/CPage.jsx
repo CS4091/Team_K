@@ -26,28 +26,6 @@ const CPage = () => {
         }
     }
 
-    /*const saveAnnouncement = async () => {
-        // Send the announcement data to the server
-        const response = await fetch(`http://localhost:3001/c/${cName}/announcement`, {
-            method: "PUT",  // Use PUT if you are updating an existing announcement; POST if creating a new one
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ announcement }),  // Send the announcement text
-        });
-    
-        const doc = await response.json();
-    
-        if (doc.message === 'Announcement saved successfully') {
-            setIsEditing(false);  // Switch back to view mode after saving
-            setIsSnackOpen(true);  // Open snack bar (assuming it's part of your logic)
-            setSnackMessage('Announcement saved successfully');
-        } else {
-            setIsSnackOpen(true);  // Open snack bar in case of error
-            setSnackMessage('Error saving announcement. Please try again.');
-        }
-    }; */
-
     useEffect(() => {
             if (searched == false && cPosts.length == 0) {
                 getClub()
@@ -66,49 +44,10 @@ const CPage = () => {
                 <TopBar/>
                 {cObject? (
                     <div>
-                        {/* link/announcement box
-                        <Box className="rounded-lg p-6 mb-6 text-center" sx={{ backgroundColor: 'lightgrey' }}>
-                            <Typography variant='h6' gutterBottom>Announcements</Typography>
-                            
-                            {isEditing ? (
-                                <TextField
-                                    value={announcement}
-                                    onChange={(e) => setAnnouncement(e.target.value)}
-                                    multiline
-                                    rows={3}
-                                    fullWidth
-                                    variant="outlined"
-                                    placeholder="Edit here..."
-                                />
-                            ) : (
-                                <Typography variant="body1">{announcement || "No announcement yet."}</Typography>
-                            )}
-
-                            {isEditing ? (
-                                <Button 
-                                    variant="contained" 
-                                    color="primary" 
-                                    onClick={saveAnnouncement}
-                                    sx={{ marginTop: 2 }}
-                                >
-                                    Save
-                                </Button>
-                            ) : (
-                                <Button 
-                                    variant="outlined" 
-                                    color="primary" 
-                                    onClick={() => setIsEditing(true)} 
-                                    sx={{ marginTop: 2 }}
-                                >
-                                    Edit
-                                </Button>
-                            )}
-                        </Box> */}
-
                         <Box className="rounded-lg p-6 mb-6 text-center">
                             <Typography variant='h4' gutterBottom>{cObject.name}</Typography>
                             {cObject.president ? (
-                                <Typography variant='subtitle1'>President: {cObject.president}</Typography>
+                                <Typography variant='subtitle1'>President: {cObject.president?.username}</Typography>
                             ) : (
                                 <Typography variant='subtitle1'>{cObject.department} - {cObject.number}</Typography>
                             )}

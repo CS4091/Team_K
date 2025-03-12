@@ -25,14 +25,13 @@ const PostCard = ({ post, hidepin}) => {
         }
     }
 
-// new function for pin function
     const handlePin = async () => {
+        // check if user is logged in
         if (!user.username) {
             setIsSnackOpen(true);
             setSnackMessage('You must be logged in to pin a post!');
             return;
         }
-
         const newpost = {...post, pin: !post.pin}
         console.log({newpost})
         const response = await fetch(`http://localhost:3001/post/${post._id}`, {
@@ -77,13 +76,13 @@ const PostCard = ({ post, hidepin}) => {
                             <Typography variant='body-2'>Comments: {post?.comments?.length}</Typography>
                         </Box>
                         <Box sx={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                            {/* Conditionally render Pin button */}
+                            {/* hiding button */}
                             {!hidepin && user?.username && (
                                 <IconButton
                                     onClick={handlePin}
                                     aria-label="pin"
                                 >
-                                    <PinIcon color={post.pin ? "error" : "action"} /> {/* red pin cause ye */}
+                                    <PinIcon color={post.pin ? "error" : "action"} /> 
                                 </IconButton>
                             )}
                             {/* Navigate Button */}

@@ -23,12 +23,12 @@ const ViewPostPage = () => {
     }
 
     const handlePin = async () => {
+        // delete the ! or remove the if statement if pin function should be allowed here
         if (!user.username) {
             setIsSnackOpen(true);
             setSnackMessage('You must be logged in to pin a post!');
             return;
         }
-
         const newPost = { ...post, pin: !post.pin }
         const response = await fetch(`http://localhost:3001/post/${_id}`, {
             method: "PUT",
@@ -39,7 +39,7 @@ const ViewPostPage = () => {
         });
         const doc = await response.json()
         if (doc.message === 'Post pinned successfully' || doc.message === 'Post unpinned successfully') {
-            setPost(newPost) // Update local state to reflect the pinned status
+            setPost(newPost)
         }
     }
 
@@ -79,7 +79,7 @@ const ViewPostPage = () => {
                                 <div className="text-3xl"><b>{post.title}</b></div>
                                 
                                 <IconButton onClick={handlePin} aria-label="pin">
-                                    <PinIcon color={post.pin ? "error" : "action"} /> {/* Red pin if pinned */}
+                                    <PinIcon color={post.pin ? "error" : "action"} />
                                 </IconButton>
                             </div>
                         <div class="pt-4 ">{post.text}</div>

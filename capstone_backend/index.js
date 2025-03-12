@@ -64,7 +64,7 @@ app.get('/post/:id', async (req, res) => {
 app.post("/post", async (req, res) => {
   try {
     const collection = client.db('capstone-website').collection('posts');
-
+    
     const newPost = {
       username: req.body.username,
       title: req.body.title,
