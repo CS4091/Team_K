@@ -68,7 +68,7 @@ const LandingPage = () => {
                 {recentPosts.map((post, index) => {
                     return (
                         <Grid item xs={12} key={index}>
-                            <PostCard post={post} />
+                            <PostCard post={post} hidepin={true} /> {/* set to false to show pins*/}
                         </Grid>
                     )
                 })}
