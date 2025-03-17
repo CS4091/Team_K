@@ -10,7 +10,8 @@ import enUS from 'date-fns/locale/en-US';
 import "../index.css";
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import TopBar from '../Components/TopBar';
-import { Modal, Button, TextField, Box } from '@mui/material';
+import { Modal, Button, TextField, Box, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+
 
 // Localizer Setup
 const localizer = dateFnsLocalizer({
@@ -64,6 +65,12 @@ const CalendarPage = () => {
     const [view, setView] = useState(Views.MONTH);
     const [filteredEvents, setFilteredEvents] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');  //set ups search term
+    const [selectedLocation, setSelectedLocation] = useState('');
+    const [selectedHostingGroup, setSelectedHostingGroup] = useState('');
+    const [selectedCoordinator, setSelectedCoordinator] = useState('');
+    const locations = [...new Set(events.map(event => event.location).filter(Boolean))];
+    const hostingGroups = [...new Set(events.map(event => event.hostingGroup).filter(Boolean))];
+    const coordinators = [...new Set(events.map(event => event.coordinator).filter(Boolean))];
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [modalOpen, setModalOpen] = useState(false);
     const [modalData, setModalData] = useState({
@@ -71,6 +78,20 @@ const CalendarPage = () => {
     });
 
     const agendaRef = useRef(null);
+
+
+    <FormControl fullWidth margin="normal">
+        <InputLabel>Filter by Location</InputLabel>
+        <Select
+            value={selectedLocation}
+            onChange={(e) => setSelectedLocation(e.target.value)}
+        >
+            <MenuItem value="">All</MenuItem>
+            {locations.map(location => (
+                <MenuItem key={location} value={location}>{location}</MenuItem>
+            ))}
+        </Select>
+    </FormControl>
 
     useEffect(() => {
         const fetchCalendarData = async () => {
@@ -106,15 +127,21 @@ const CalendarPage = () => {
     };
     
     useEffect(() => {
-        if (!searchTerm) {
-            setFilteredEvents(events); // Show all events when search is empty
-        } else {
-            const filtered = events.filter(event =>
-                event.title.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-            setFilteredEvents(filtered);
+        let filtered = events;
+        if (searchTerm) {
+            filtered = filtered.filter(event => event.title.toLowerCase().includes(searchTerm.toLowerCase()));
         }
-    }, [searchTerm, events, view]); // Also re-run when `view` changes
+        if (selectedLocation) {
+            filtered = filtered.filter(event => event.location === selectedLocation);
+        }
+        if (selectedHostingGroup) {
+            filtered = filtered.filter(event => event.hostingGroup === selectedHostingGroup);
+        }
+        if (selectedCoordinator) {
+            filtered = filtered.filter(event => event.coordinator === selectedCoordinator);
+        }
+        setFilteredEvents(filtered);
+    }, [searchTerm, selectedLocation, selectedHostingGroup, selectedCoordinator, events]);
     
 
     // Open the edit modal
@@ -197,9 +224,52 @@ const CalendarPage = () => {
                         value={searchTerm} 
                         onChange={(e) => setSearchTerm(e.target.value)} 
                         margin="normal"
-                    />
-                    <Button type="submit" variant="contained" color="primary">Search</Button>
+                    /> 
+                    
+                    <Box display="flex" gap={2} mt={2}>
+                        <FormControl fullWidth sx={{ flex: 1 }}>
+                            <InputLabel>Location</InputLabel>
+                            <Select
+                                value={selectedLocation}
+                                onChange={(e) => setSelectedLocation(e.target.value)}
+                            >
+                                <MenuItem value="">All</MenuItem>
+                                {locations.map(location => (
+                                    <MenuItem key={location} value={location}>{location}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+                        <FormControl fullWidth sx={{ flex: 1 }}>
+                            <InputLabel>Hosting Group</InputLabel>
+                            <Select
+                                value={selectedHostingGroup}
+                                onChange={(e) => setSelectedHostingGroup(e.target.value)}
+                            >
+                                <MenuItem value="">All</MenuItem>
+                                {hostingGroups.map(group => (
+                                    <MenuItem key={group} value={group}>{group}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+                        <FormControl fullWidth sx={{ flex: 1 }}>
+                            <InputLabel>Coordinator</InputLabel>
+                            <Select
+                                value={selectedCoordinator}
+                                onChange={(e) => setSelectedCoordinator(e.target.value)}
+                            >
+                                <MenuItem value="">All</MenuItem>
+                                {coordinators.map(coord => (
+                                    <MenuItem key={coord} value={coord}>{coord}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Box>
+
+
                     <Calendar
+                        //<Button type="submit" variant="contained" color="primary">Search</Button>
                         localizer={localizer}
                         events={filteredEvents}
                         startAccessor="start"
