@@ -58,13 +58,22 @@ const MapPage = () => {
     };
   }, [map, pinMode]);
 
-  const handlePinSubmit = () => {
+  const handlePinSubmit = async () => {
     if (map && pinLocation && pinName.trim()) {
       const newMarker = L.marker(pinLocation).addTo(map)
         .bindPopup(`<b>${pinName}</b><br>Lat: ${pinLocation.lat.toFixed(5)}<br>Lng: ${pinLocation.lng.toFixed(5)}`)
         .openPopup();
-
-      setPins((prevPins) => [...prevPins, { id: Date.now(), name: pinName, latlng: pinLocation, marker: newMarker }]);
+      const newPin = { id: Date.now(), name: pinName, latlng: pinLocation, marker: newMarker }
+      console.log(newPin)
+      const response = await fetch('http://localhost:3001/event', {
+        method: 'POST',
+        headers: {
+        'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newPin),
+      })
+      console.log({response})
+      setPins((prevPins) => [...prevPins, newPin]);
       setShowPinModal(false);
       setPinName('');
       setPinLocation(null);

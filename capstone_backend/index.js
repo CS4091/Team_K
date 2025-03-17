@@ -515,3 +515,28 @@ app.get('/c/:cName', async (req, res) => {
 app.listen(port, () => {
   console.log(`App running on port ${port}.`)
 })
+
+app.post("/event", async (req, res) => {
+  try {
+    const collection = client.db('capstone-website').collection('events');
+
+
+    const newEvent = {
+      name: req.body.name || "",
+      description: req.body.description || "",
+      pinId : req.body.id || 0,
+      latlng : req.body.latlng || {},
+      marker: req.body.marker || {},
+      date: req.body.date || new Date(0)
+    }
+
+    // Insert the new post into the 'post' collection
+    const result = await collection.insertOne(newEvent)
+
+    console.log('New post created with ID:', result.insertedId)
+    res.status(201).json({ message: 'Post created successfully', postId: result.insertedId })
+  } catch (error) {
+    console.error('Error creating post:', error)
+    res.status(500).send('Error creating post')
+  }
+})

@@ -10,11 +10,13 @@ import PostCard from '../Components/PostCard'
 const CPage = () => {
     const {theme, isModalOpen, setIsModalOpen, searched, setSearched, cPosts, cObject, setCPosts, setCObject} = useGlobalContext()
     const {cName} = useParams()
+    const [loaded, setLoaded] = useState(false)
 
     const getClub = async () => {
         const response = await fetch(`http://localhost:3001/c/${cName}`)
         const object = await response.json()
         setCObject(object.data)
+        setLoaded(true)
         setCPosts(object.posts)
         setSearched(true)
     }
@@ -24,17 +26,21 @@ const CPage = () => {
                 getClub()
             }
         }, [cPosts])
+        
+    useEffect(() => {
+        console.log(cObject)
+    }, [cObject])
 
     return (
         <div>
             <ThemeProvider theme={theme}>
                 <TopBar/>
-                {cObject? (
+                {cObject.name ? (
                     <div>
                         <Box className="rounded-lg p-6 mb-6 text-center">
                             <Typography variant='h4' gutterBottom>{cObject.name}</Typography>
-                            {cObject.president ? (
-                                <Typography variant='subtitle1'>President: {cObject.president}</Typography>
+                            {cObject?.president?.username ? (
+                                <Typography variant='subtitle1'>President: {cObject.president.username}</Typography>
                             ) : (
                                 <Typography variant='subtitle1'>{cObject.department} - {cObject.number}</Typography>
                             )}
@@ -52,7 +58,7 @@ const CPage = () => {
                     </div>
                 ) : (
                     <>Loading...</>
-                )}
+                )} 
                 <UserModal isOpen={isModalOpen} setIsOpen={setIsModalOpen}/>
             </ThemeProvider>
         </div>

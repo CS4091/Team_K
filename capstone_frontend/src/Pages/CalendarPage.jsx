@@ -57,6 +57,10 @@ const CalendarPage = () => {
         };
         fetchCalendarData();
     }, []);
+
+    useEffect(() => {
+        console.log({events})
+    }, [events])
     return (
         <ThemeProvider theme={theme}>
             <div>
