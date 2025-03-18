@@ -512,10 +512,6 @@ app.get('/c/:cName', async (req, res) => {
   }
 })
 
-app.listen(port, () => {
-  console.log(`App running on port ${port}.`)
-})
-
 app.post("/event", async (req, res) => {
   try {
     const collection = client.db('capstone-website').collection('events');
@@ -530,7 +526,6 @@ app.post("/event", async (req, res) => {
       date: req.body.date || new Date(0)
     }
 
-    // Insert the new post into the 'post' collection
     const result = await collection.insertOne(newEvent)
 
     console.log('New post created with ID:', result.insertedId)
@@ -540,3 +535,22 @@ app.post("/event", async (req, res) => {
     res.status(500).send('Error creating post')
   }
 })
+
+app.get("/event/getAll", async (req, res) => {
+  try {
+    const collection = client.db('capstone-website').collection('events')
+    const pins = await collection.find().toArray()
+
+    res.status(200).json(pins)
+  } catch (error) {
+    console.error("Error fetching club by name:", error)
+    res.status(500).send("Error fetching club by name")
+  }
+})
+
+
+
+app.listen(port, () => {
+  console.log(`App running on port ${port}.`)
+})
+
