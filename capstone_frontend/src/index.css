@@ -6,6 +6,59 @@
 textboxstuff {
   border: 3px solid #555;
 }
+
+.rbc-event {
+  background-color: #154734 !important;
+  color: #FFFFFF !important;
+  border: none !important;
+}
+
+.rbc-event:hover {
+  background-color: #007A33 !important;
+  transition: background-color 0.3s ease;
+}
+
+/* month cells */
+.rbc-month-view .rbc-day-bg:hover {
+  background-color: rgba(15, 66, 36, 0.2);
+  transition: background-color 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+/* readjusts bounds of individual timeslots */
+.rbc-timeslot-group {
+  width: 100% !important;
+  display: flex !important;
+  flex: 1 1 100%;
+  position: relative;
+  z-index: 1;
+}
+
+.rbc-events-container{
+  width: 80% !important;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.rbc-event {
+  pointer-events: auto;
+}
+
+.rbc-timeslot-group:hover {
+  background-color: rgba(19, 194, 92, 0.2);
+  transition: background-color 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+
+.custom-time-slot:hover .rbc-event-content,
+.custom-time-slot:hover .rbc-events-container,
+.custom-time-slot:hover {
+  background-color: rgba(19, 194, 92, 0.2);
+  transition: background-color 0.2s ease-in-out;
+  cursor: pointer;
+}
+
   
 column {
     float: left;
