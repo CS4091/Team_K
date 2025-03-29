@@ -14,7 +14,7 @@ textboxstuff {
 }
 
 .rbc-event:hover {
-  background-color: #007A33 !important;
+  background-color: #103822 !important;
   transition: background-color 0.3s ease;
 }
 
@@ -54,7 +54,7 @@ textboxstuff {
 .custom-time-slot:hover .rbc-event-content,
 .custom-time-slot:hover .rbc-events-container,
 .custom-time-slot:hover {
-  background-color: rgba(19, 194, 92, 0.2);
+  background-color: rgba(19, 51, 33, 0.2);
   transition: background-color 0.2s ease-in-out;
   cursor: pointer;
 }

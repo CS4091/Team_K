@@ -10,7 +10,8 @@ import enUS from 'date-fns/locale/en-US';
 import "../index.css";
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import TopBar from '../Components/TopBar';
-import { Modal, Button, TextField, Box } from '@mui/material';
+import { Modal, Button, TextField, Box, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+
 
 // Localizer Setup
 const localizer = dateFnsLocalizer({
@@ -24,7 +25,10 @@ const localizer = dateFnsLocalizer({
 
 
 // Custom Agenda Event Display
-const CustomAgendaEvent = ({ event, selectedEvent, hoveredEvent, setHoveredEvent, onEdit, onDelete, theme }) => {
+const CustomAgendaEvent = ({ event, selectedEvent, hoveredEvent, setHoveredEvent, onEdit, onDelete, theme, searchTerm }) => {
+    if (searchTerm && !event.title.toLowerCase().includes(searchTerm.toLowerCase())) {
+        return null; // Hide events that don’t match search
+    }
     return (
         <div
             id={`event-${event.id}`}
@@ -33,8 +37,9 @@ const CustomAgendaEvent = ({ event, selectedEvent, hoveredEvent, setHoveredEvent
             style={{
                 padding: '8px',
                 borderRadius: '5px',
-                backgroundColor: hoveredEvent === event.id ? theme.palette.primary.main : selectedEvent && selectedEvent.id === event.id ? theme.palette.secondary.main : 'transparent',
-                color: theme.palette.primary.contrastText,
+                backgroundColor: hoveredEvent === event.id ? theme.palette.primary.main : selectedEvent && selectedEvent.id === event.id ? "white" : 'transparent',
+                color: hoveredEvent === event.id ? theme.palette.primary.contrastText : selectedEvent && selectedEvent.id === event.id ? theme.palette.primary.main : 'transparent',
+                //color: theme.palette.primary.contrastText,
                 cursor: 'pointer',
                 border: '1px solid #ddd',
                 marginBottom: '5px'
@@ -54,7 +59,7 @@ const CustomAgendaEvent = ({ event, selectedEvent, hoveredEvent, setHoveredEvent
             <br />
             📞 <strong>Phone:</strong> {event.phone || "Not provided"}
             <br />
-            <Button size="small" onClick={() => onEdit(event)} variant="outlined" color="primary">Edit</Button>
+            <Button size="small" onClick={() => onEdit(event)} variant="outlined" color="white">Edit</Button>
             <Button size="small" onClick={() => onDelete(event)} variant="outlined" color="error" style={{ marginLeft: '10px' }}>Delete</Button>
         </div>
     );
@@ -64,6 +69,14 @@ const CalendarPage = () => {
     const { theme } = useGlobalContext();
     const [events, setEvents] = useState([]);
     const [view, setView] = useState(Views.MONTH);
+    const [filteredEvents, setFilteredEvents] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');  //set ups search term
+    const [selectedLocation, setSelectedLocation] = useState('');
+    const [selectedHostingGroup, setSelectedHostingGroup] = useState('');
+    const [selectedCoordinator, setSelectedCoordinator] = useState('');
+    const locations = [...new Set(events.map(event => event.location).filter(Boolean))];
+    const hostingGroups = [...new Set(events.map(event => event.hostingGroup).filter(Boolean))];
+    const coordinators = [...new Set(events.map(event => event.coordinator).filter(Boolean))];
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [modalOpen, setModalOpen] = useState(false);
     const [hoveredEvent, setHoveredEvent] = useState(null);
@@ -74,6 +87,20 @@ const CalendarPage = () => {
     });
 
     const agendaRef = useRef(null);
+
+
+    <FormControl fullWidth margin="normal">
+        <InputLabel>Filter by Location</InputLabel>
+        <Select
+            value={selectedLocation}
+            onChange={(e) => setSelectedLocation(e.target.value)}
+        >
+            <MenuItem value="">All</MenuItem>
+            {locations.map(location => (
+                <MenuItem key={location} value={location}>{location}</MenuItem>
+            ))}
+        </Select>
+    </FormControl>
 
     useEffect(() => {
         const fetchCalendarData = async () => {
@@ -99,6 +126,32 @@ const CalendarPage = () => {
             }, 300);
         }
     }, [view, selectedEvent]);
+
+    const handleSearch = (e) => {
+        e.preventDefault();
+        const filtered = events.filter(event =>
+            event.title.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        setFilteredEvents(filtered);
+    };
+    
+    useEffect(() => {
+        let filtered = events;
+        if (searchTerm) {
+            filtered = filtered.filter(event => event.title.toLowerCase().includes(searchTerm.toLowerCase()));
+        }
+        if (selectedLocation) {
+            filtered = filtered.filter(event => event.location === selectedLocation);
+        }
+        if (selectedHostingGroup) {
+            filtered = filtered.filter(event => event.hostingGroup === selectedHostingGroup);
+        }
+        if (selectedCoordinator) {
+            filtered = filtered.filter(event => event.coordinator === selectedCoordinator);
+        }
+        setFilteredEvents(filtered);
+    }, [searchTerm, selectedLocation, selectedHostingGroup, selectedCoordinator, events]);
+    
 
     // Open the edit modal
     const handleEditClick = (event) => {
@@ -219,9 +272,61 @@ const CalendarPage = () => {
             <div>
                 <TopBar />
                 <div className="p-4">
+                    <TextField 
+                        label="Search Events" 
+                        variant="outlined" 
+                        fullWidth 
+                        value={searchTerm} 
+                        onChange={(e) => setSearchTerm(e.target.value)} 
+                        margin="normal"
+                    /> 
+                    
+                    <Box display="flex" gap={2} mt={2}>
+                        <FormControl fullWidth sx={{ flex: 1 }}>
+                            <InputLabel>Location</InputLabel>
+                            <Select
+                                value={selectedLocation}
+                                onChange={(e) => setSelectedLocation(e.target.value)}
+                            >
+                                <MenuItem value="">All</MenuItem>
+                                {locations.map(location => (
+                                    <MenuItem key={location} value={location}>{location}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+                        <FormControl fullWidth sx={{ flex: 1 }}>
+                            <InputLabel>Hosting Group</InputLabel>
+                            <Select
+                                value={selectedHostingGroup}
+                                onChange={(e) => setSelectedHostingGroup(e.target.value)}
+                            >
+                                <MenuItem value="">All</MenuItem>
+                                {hostingGroups.map(group => (
+                                    <MenuItem key={group} value={group}>{group}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+                        <FormControl fullWidth sx={{ flex: 1 }}>
+                            <InputLabel>Coordinator</InputLabel>
+                            <Select
+                                value={selectedCoordinator}
+                                onChange={(e) => setSelectedCoordinator(e.target.value)}
+                            >
+                                <MenuItem value="">All</MenuItem>
+                                {coordinators.map(coord => (
+                                    <MenuItem key={coord} value={coord}>{coord}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Box>
+
+
                     <Calendar
+                        //<Button type="submit" variant="contained" color="primary">Search</Button>
                         localizer={localizer}
-                        events={events}
+                        events={filteredEvents}
                         startAccessor="start"
                         endAccessor="end"
                         view={view}
@@ -262,6 +367,7 @@ const CalendarPage = () => {
                                         setHoveredEvent={setHoveredEvent}
                                         onEdit={handleEditClick}
                                         onDelete={handleDeleteEvent}
+                                        searchTerm={searchTerm}
                                         theme={theme}
                                     />
                                 )
