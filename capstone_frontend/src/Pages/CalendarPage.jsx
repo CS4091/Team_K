@@ -12,6 +12,8 @@ import 'react-big-calendar/lib/css/react-big-calendar.css';
 import TopBar from '../Components/TopBar';
 import { Modal, Button, TextField, Box, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 
+import { Modal, Button, TextField, Box, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+
 
 // Localizer Setup
 const localizer = dateFnsLocalizer({
