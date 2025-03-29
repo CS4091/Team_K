@@ -217,33 +217,6 @@ const CalendarPage = () => {
         setSelectedEvent(null);
         setModalOpen(true);
 
-        /*
-        const title = prompt("Enter Event Title:");
-        if (!title) return;
-
-        const location = prompt("Enter Event Location (Optional):");
-        const summary = prompt("Enter Event Summary (Optional):");
-        const hostingGroup = prompt("Enter Hosting Group (Optional):");
-        const coordinator = prompt("Enter Event Coordinator (Optional):");
-        const email = prompt("Enter Contact Email (Optional):");
-        const phone = prompt("Enter Contact Phone (Optional):");
-
-        const newEvent = {
-            id: events.length, // Assign unique ID
-            title,
-            location: location || "No location specified",
-            summary: summary || "No summary provided",
-            hostingGroup: hostingGroup || "Not provided",
-            coordinator: coordinator || "Not provided",
-            email: email || "Not provided",
-            phone: phone || "Not provided",
-            start: slotInfo.start,
-            end: slotInfo.end,
-        };
-
-        setEvents([...events, newEvent]); // Update state
-
-        */
     };
 
     //hover over event
@@ -407,7 +380,7 @@ const CalendarPage = () => {
                         transform: 'translate(-50%, -50%)', width: 400,
                         bgcolor: 'background.paper', boxShadow: 24, p: 4, borderRadius: 2
                     }}>
-                        <h2>Edit Event</h2>
+                        <h2>Add a New Event</h2>
                         {["title", "location", "summary", "hostingGroup", "coordinator", "email", "phone"].map((field) => (
                             <TextField
                                 key={field}
