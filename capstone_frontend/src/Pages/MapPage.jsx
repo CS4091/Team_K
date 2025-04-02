@@ -23,6 +23,19 @@ const MapPage = () => {
     { name: "Havener Center", lat: 37.95491, lng: -91.77624 }
   ];
 
+  const getAllPins = async () => {
+    const response = await fetch(`http://localhost:3001/event/getAll`)
+    const doc = await response.json()
+    const newPins = doc.map(p => {
+      const newMarker = L.marker(p.latlng).addTo(map)
+        .bindPopup(`<b>${pinName}</b><br>Lat: ${p.latlng.lat.toFixed(5)}<br>Lng: ${p.latlng.lng.toFixed(5)}`)
+        .openPopup();
+      const newP = {...p, marker: newMarker}
+      return newP
+    })
+    setPins(newPins)
+  }
+
   useEffect(() => {
     const bounds = [
       [37.90, -91.85], 
@@ -53,7 +66,7 @@ const MapPage = () => {
     
 
     setMap(newMap);
-
+    
     return () => {
       newMap.remove();
     };
@@ -61,7 +74,9 @@ const MapPage = () => {
 
   useEffect(() => {
     if (!map) return;
-
+    if (pins.length == 0) {
+      getAllPins()
+    }
     const handleMapClick = (e) => {
       if (pinMode) {
         setPinLocation(e.latlng);
@@ -76,13 +91,22 @@ const MapPage = () => {
     };
   }, [map, pinMode]);
 
-  const handlePinSubmit = () => {
+  const handlePinSubmit = async () => {
     if (map && pinLocation && pinName.trim()) {
+      console.log(pinLocation)
       const newMarker = L.marker(pinLocation).addTo(map)
         .bindPopup(`<b>${pinName}</b><br>Lat: ${pinLocation.lat.toFixed(5)}<br>Lng: ${pinLocation.lng.toFixed(5)}`)
         .openPopup();
-
-      setPins((prevPins) => [...prevPins, { id: Date.now(), name: pinName, latlng: pinLocation, marker: newMarker }]);
+      const newPin = { id: Date.now(), name: pinName, latlng: pinLocation, }
+      const response = await fetch('http://localhost:3001/event', {
+        method: 'POST',
+        headers: {
+        'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newPin),
+      })
+      const mapPin = {...newPin, marker: newMarker}
+      setPins((prevPins) => [...prevPins, mapPin]);
       setShowPinModal(false);
       setPinName('');
       setPinLocation(null);
