@@ -12,7 +12,6 @@ import 'react-big-calendar/lib/css/react-big-calendar.css';
 import TopBar from '../Components/TopBar';
 import { Modal, Button, TextField, Box, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 
-import { Modal, Button, TextField, Box, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 
 
 // Localizer Setup
@@ -27,10 +26,20 @@ const localizer = dateFnsLocalizer({
 
 
 // Custom Agenda Event Display
-const CustomAgendaEvent = ({ event, selectedEvent, hoveredEvent, setHoveredEvent, onEdit, onDelete, theme, searchTerm }) => {
+const CustomAgendaEvent = ({
+    event,
+    selectedEvent,
+    hoveredEvent,
+    setHoveredEvent,
+    onEdit,
+    onDelete,
+    theme,
+    searchTerm
+}) => {
     if (searchTerm && !event.title.toLowerCase().includes(searchTerm.toLowerCase())) {
-        return null; // Hide events that don’t match search
+        return null;
     }
+
     return (
         <div
             id={`event-${event.id}`}
@@ -39,9 +48,18 @@ const CustomAgendaEvent = ({ event, selectedEvent, hoveredEvent, setHoveredEvent
             style={{
                 padding: '8px',
                 borderRadius: '5px',
-                backgroundColor: hoveredEvent === event.id ? theme.palette.primary.main : selectedEvent && selectedEvent.id === event.id ? "white" : 'transparent',
-                color: hoveredEvent === event.id ? theme.palette.primary.contrastText : selectedEvent && selectedEvent.id === event.id ? theme.palette.primary.main : 'transparent',
-                //color: theme.palette.primary.contrastText,
+                backgroundColor:
+                    hoveredEvent === event.id
+                        ? theme.palette.primary.main
+                        : selectedEvent && selectedEvent.id === event.id
+                        ? "white"
+                        : 'transparent',
+                color:
+                    hoveredEvent === event.id
+                        ? theme.palette.primary.contrastText
+                        : selectedEvent && selectedEvent.id === event.id
+                        ? theme.palette.primary.main
+                        : 'transparent',
                 cursor: 'pointer',
                 border: '1px solid #ddd',
                 marginBottom: '5px'
@@ -61,11 +79,45 @@ const CustomAgendaEvent = ({ event, selectedEvent, hoveredEvent, setHoveredEvent
             <br />
             📞 <strong>Phone:</strong> {event.phone || "Not provided"}
             <br />
-            <Button size="small" onClick={() => onEdit(event)} variant="outlined" color="white">Edit</Button>
-            <Button size="small" onClick={() => onDelete(event)} variant="outlined" color="error" style={{ marginLeft: '10px' }}>Delete</Button>
+            {event.link && (
+                <>
+                    🔗 <strong>Link:</strong>{" "}
+                    <a href={event.link} target="_blank" rel="noopener noreferrer">
+                        {event.link}
+                    </a>
+                    <br />
+                </>
+            )}
+            {event.image && (
+                <>
+                    🖼️ <strong>Image:</strong>
+                    <br />
+                    <img
+                        src={event.image}
+                        alt="Event"
+                        style={{ maxWidth: '100%', maxHeight: '150px', marginTop: '5px' }}
+                    />
+                    <br />
+                </>
+            )}
+            <Button size="small" onClick={() => onEdit(event)} variant="outlined" color="white">
+                Edit
+            </Button>
+            <Button
+                size="small"
+                onClick={() => onDelete(event)}
+                variant="outlined"
+                color="error"
+                style={{ marginLeft: '10px' }}
+            >
+                Delete
+            </Button>
         </div>
     );
 };
+
+
+
 
 const CalendarPage = () => {
     const { theme } = useGlobalContext();
@@ -85,7 +137,7 @@ const CalendarPage = () => {
     const [hoveredSlot, setHoveredSlot] = useState(null);
     const [hoveredCalendarEvent, setHoveredCalendarEvent] = useState(null);
     const [modalData, setModalData] = useState({
-        title: '', location: '', summary: '', hostingGroup: '', coordinator: '', email: '', phone: ''
+        title: '', location: '', summary: '', hostingGroup: '', coordinator: '', email: '', phone: '', link: '', image: ''
     });
 
     const agendaRef = useRef(null);
@@ -165,7 +217,9 @@ const CalendarPage = () => {
             hostingGroup: event.hostingGroup || "",
             coordinator: event.coordinator || "",
             email: event.email || "",
-            phone: event.phone || ""
+            phone: event.phone || "",
+            link: event.link || "",
+            image: event.image || ''
         });
         setModalOpen(true);
     };
@@ -377,22 +431,64 @@ const CalendarPage = () => {
                         backgroundColor: 'rgba(0, 0, 0, 0.5)'
                     }
                 }}>
-                    <Box sx={{
-                        position: 'absolute', top: '50%', left: '50%',
-                        transform: 'translate(-50%, -50%)', width: 400,
-                        bgcolor: 'background.paper', boxShadow: 24, p: 4, borderRadius: 2
-                    }}>
-                        <h2>Add a New Event</h2>
-                        {["title", "location", "summary", "hostingGroup", "coordinator", "email", "phone"].map((field) => (
+                    <Box
+                        sx={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: 400,
+                            maxHeight: '90vh',
+                            bgcolor: 'background.paper',
+                            boxShadow: 24,
+                            borderRadius: 2,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            p: 0
+                        }}
+                    >
+                        {/* Scrollable content */}
+                        <Box sx={{ p: 4, overflowY: 'auto', flex: 1 }}>
+                            <h2>Add a New Event</h2>
+
+                            {["title", "location", "summary", "hostingGroup", "coordinator", "email", "phone"].map((field) => (
+                                <TextField
+                                    key={field}
+                                    fullWidth
+                                    label={field.replace(/([A-Z])/g, ' $1').trim()}
+                                    name={field}
+                                    value={modalData[field]}
+                                    onChange={handleModalChange}
+                                    margin="normal"
+                                />
+                            ))}
+
                             <TextField
-                                key={field}
-                                fullWidth label={field.replace(/([A-Z])/g, ' $1').trim()}
-                                name={field} value={modalData[field]}
+                                fullWidth
+                                label="Event Link"
+                                name="link"
+                                value={modalData.link}
                                 onChange={handleModalChange}
                                 margin="normal"
                             />
-                        ))}
-                        <Box mt={2} display="flex" justifyContent="space-between">
+
+                            <TextField
+                                fullWidth
+                                label="Image URL"
+                                name="image"
+                                value={modalData.image}
+                                onChange={handleModalChange}
+                                margin="normal"
+                            />
+                        </Box>
+
+                        {/* Footer buttons */}
+                        <Box sx={{
+                            p: 2,
+                            borderTop: '1px solid #eee',
+                            display: 'flex',
+                            justifyContent: 'space-between'
+                        }}>
                             <Button
                                 variant="outlined"
                                 onClick={() => setModalOpen(false)}
