@@ -518,19 +518,25 @@ app.post("/event", async (req, res) => {
   try {
     const collection = client.db('capstone-website').collection('events');
 
-
     const newEvent = {
-      name: req.body.name || "",
-      description: req.body.description || "",
+      name: req.body.name || req.body.title || "",
+      description: req.body.description || req.body.summary || "",
       pinId : req.body.id || 0,
       latlng : req.body.latlng || {},
       marker: req.body.marker || {},
-      date: req.body.date || new Date(0)
+      start: req.body.start || new Date(0),
+      end: req.body.end || new Date(0),
+      coordinator: req.body.coordinator || "",
+      email: req.body.email || "",
+      title: req.body.title || req.body.name || "",
+      hostingGroup: req.body.hostingGroup || "",
+      location: req.body.latlng || {},
+      phone: req.body.phone || 0,
+      summary: req.body.summary || req.body.description || ""
     }
 
     const result = await collection.insertOne(newEvent)
 
-    console.log('New post created with ID:', result.insertedId)
     res.status(201).json({ message: 'Post created successfully', postId: result.insertedId })
   } catch (error) {
     console.error('Error creating post:', error)

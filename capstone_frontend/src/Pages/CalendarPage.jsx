@@ -159,9 +159,9 @@ const CalendarPage = () => {
     useEffect(() => {
         const fetchCalendarData = async () => {
             try {
-                const response = await fetch('http://localhost:3001/calendar');
-                const doc = await response.json();
-                setEvents(doc.map((e, index) => ({ ...e, id: index }))); // Assign unique IDs
+                const response = await fetch(`http://localhost:3001/event/getAll?hasStart=true`)
+                const doc = await response.json()
+                setEvents(doc.map((e, index) => ({ ...e, id: index, start: new Date(e.start), end: new Date(e.end) }))); // Assign unique IDs
             } catch (error) {
                 console.error("Calendar Error:", error);
             }
@@ -230,9 +230,12 @@ const CalendarPage = () => {
     };
 
     // Save edited event
-    const handleModalSave = () => {
+    const handleModalSave = async () => {
+        console.log('poopypoopydickhead')
+        console.log(selectedEvent)
         if(selectedEvent) {
             const updatedEvent = { ...selectedEvent, ...modalData };
+            console.log({updatedEvent})
             setEvents(events.map(e => (e.id === selectedEvent.id ? updatedEvent : e)));
 
         } else{
@@ -242,7 +245,16 @@ const CalendarPage = () => {
                 start: modalData.start || new Date(),
                 end: modalData.end || new Date(),
             };
+            console.log({newEvent})
             setEvents([...events, newEvent]);
+            const response = await fetch('http://localhost:3001/event', {
+                method: 'POST',
+                headers: {
+                'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(newEvent),
+              })
+            console.log({response})
         }
         setModalOpen(false);
         setSelectedEvent(null);
@@ -258,7 +270,7 @@ const CalendarPage = () => {
 
     // Add a new event
     const handleAddEvent = (slotInfo) => {
-        
+        console.log('Im a dickhead')
         setModalData({
             title: '',
             location: '',
