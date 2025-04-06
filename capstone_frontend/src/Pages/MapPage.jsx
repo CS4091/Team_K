@@ -93,7 +93,6 @@ const MapPage = () => {
 
   const handlePinSubmit = async () => {
     if (map && pinLocation && pinName.trim()) {
-      console.log(pinLocation)
       const newMarker = L.marker(pinLocation).addTo(map)
         .bindPopup(`<b>${pinName}</b><br>Lat: ${pinLocation.lat.toFixed(5)}<br>Lng: ${pinLocation.lng.toFixed(5)}`)
         .openPopup();
