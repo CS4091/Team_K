@@ -4,6 +4,7 @@ const app = express()
 const port = 3001
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const sendEmail = require("./email")
 
 app.use(express.json())
 app.use(function (req, res, next) {
@@ -64,7 +65,7 @@ app.get('/post/:id', async (req, res) => {
 app.post("/post", async (req, res) => {
   try {
     const collection = client.db('capstone-website').collection('posts');
-
+    
     const newPost = {
       username: req.body.username,
       title: req.body.title,
@@ -73,7 +74,8 @@ app.post("/post", async (req, res) => {
       date: req.body.date || new Date(),  // Default to the current date if not provided
       comments: req.body.comments || [],  // Default to an empty array if no comments
       class: req.body.class || "",
-      club: req.body.club || ""
+      club: req.body.club || "",
+      pin: req.body.pin || false,
     }
 
     // Insert the new post into the 'post' collection
@@ -100,7 +102,8 @@ app.put("/post/:postId", async (req, res) => {
       date: req.body.date,
       comments: req.body.comments,
       class: req.body.class,
-      club: req.body.club
+      club: req.body.club,
+      pin: req.body.pin,
     };
 
     const result = await collection.updateOne(
@@ -125,17 +128,24 @@ app.post("/user/register", async (req, res) => {
 
     const { username, email, password } = req.body;
 
+    if (!email.endsWith(".edu")) {
+      return res.status(400).json({ message: "Only school emails are allowed for registration" });
+    }
     const existingUser = await collection.findOne({ $or: [{ username }, { email }] });
     if (existingUser) {
       return res.status(409).json({ message: "Username or email already exists", username: existingUser.username, userEmail: existingUser.email, userRoles: existingUser.roles });
     }
     const hashedPassword = await bcrypt.hash(password, 10)
+    const verificationToken = Math.floor(Math.random() * 900) + 100
+    await sendEmail(email, verificationToken)
     const newUser = {
       username,
       email,
       password: hashedPassword, // Add hashing later?
       createdAt: new Date(),
-      roles: req.body.roles || ["student"]  // Default to "student" role for now
+      roles: req.body.roles || ["student"],  // Default to "student" role for now
+      verified: false,
+      token: verificationToken
     };
 
     const result = await collection.insertOne(newUser);
@@ -144,6 +154,48 @@ app.post("/user/register", async (req, res) => {
   } catch (error) {
     console.error("Error registering user:", error);
     return res.status(500).send("Error registering user");
+  }
+});
+
+app.post("/user/resend-verification", async (req, res) => {
+  try {
+    const collection = client.db("capstone-website").collection("users");
+    const { email } = req.body;
+
+    const user = await collection.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.verified) {
+      return res.status(400).json({ message: "User is already verified" });
+    }
+
+    const verificationToken = Math.floor(Math.random() * 900) + 100;
+    await sendEmail(email, verificationToken);
+
+    await collection.updateOne(
+      { email },
+      { $set: { token: verificationToken } }
+    );
+
+    res.status(200).json({ message: "Verification email resent successfully" });
+  } catch (error) {
+    console.error("Error resending verification email:", error);
+    res.status(500).send("Error resending verification email");
+  }
+});
+
+app.put("/user/verify", async (req, res) => {
+  try {
+    const collection = client.db('capstone-website').collection('users');
+    const { email, token } = req.body;
+    const user = await collection.findOneAndUpdate({"email": email, "token": token}, {$set:{verified: true}}, {returnDocument: "after"})
+    return res.status(200).json({ message: "Email verified successfully!", user: user });
+  } catch (error) {
+    console.error("Error verifying email:", error);
+    return res.status(500).send("Error verifying email");
   }
 });
 
