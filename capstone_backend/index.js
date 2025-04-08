@@ -222,7 +222,8 @@ app.post("/user/login", async (req, res) => {
         username: user.username,
         userRoles: user.roles,
         userEmail: user.email,
-        _id: user._id
+        _id: user._id,
+        verified: user.verified
       })
     } catch (error) {
       console.error("Error during login:", error)
