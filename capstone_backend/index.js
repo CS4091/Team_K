@@ -2,351 +2,134 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb')
 const express = require('express')
 const app = express()
 const port = 3001
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt")
+const jwt = require("jsonwebtoken")
 const sendEmail = require("./email")
 
 app.use(express.json())
 app.use(function (req, res, next) {
-    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Access-Control-Allow-Headers');
-    next();
-  });
-
-  
-
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173')
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Access-Control-Allow-Headers')
+  next()
+})
 
 require('dotenv').config()
 const mongoName = process.env.mongo_user
 const mongoPass = process.env.mongo_password
-const uri = `mongodb+srv://${mongoName}:${mongoPass}@capstone-cluster.a3zuc.mongodb.net/?retryWrites=true&w=majority&appName=capstone-cluster&ssl=true`;
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
+const uri = `mongodb+srv://${mongoName}:${mongoPass}@capstone-cluster.a3zuc.mongodb.net/?retryWrites=true&w=majority&appName=capstone-cluster&ssl=true`
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
   }
-});
+})
 
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
-    // Send a ping to confirm a successful connection
-    // await client.db("admin").command({ ping: 1 });
-    // console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    await client.connect()
   } catch (error) {
-    console.error("Failed to connect to MongoDB", error);
-  } 
+    console.error("Failed to connect to MongoDB", error)
+  }
 }
-run().catch(console.dir);
+run().catch(console.dir)
 
-app.get('/', async (req, res) => {
-  try {
-    const movies = await client.db('capstone-website').collection('posts').find({}).limit(10).toArray(); // Adjust limit if needed
-    res.json(movies);
-  } catch (error) {
-    res.status(500).send('Error fetching movies');
-  }
-});
 
-app.get('/post/:id', async (req, res) => {
-  try {
-    const id = new ObjectId(req.params.id)
-    const movies = await client.db('capstone-website').collection('posts').find({"_id" : id}).toArray(); // Adjust limit if needed
-    res.json(movies);
-  } catch (error) {
-    res.status(500).send('Error fetching movies');
-  }
-});
+// ---------------------- CALENDAR EVENT ROUTES ----------------------
 
-app.post("/post", async (req, res) => {
+app.post("/event", async (req, res) => {
   try {
-    const collection = client.db('capstone-website').collection('posts');
-    
-    const newPost = {
-      username: req.body.username,
-      title: req.body.title,
-      text: req.body.text,
-      votes: req.body.votes || 0,  // Default to 0 if votes is not provided
-      date: req.body.date || new Date(),  // Default to the current date if not provided
-      comments: req.body.comments || [],  // Default to an empty array if no comments
-      class: req.body.class || "",
-      club: req.body.club || "",
-      pin: req.body.pin || false,
+    const collection = client.db('capstone-website').collection('events')
+    const newEvent = {
+      title: req.body.title || "",
+      location: req.body.location || "",
+      summary: req.body.summary || "",
+      hostingGroup: req.body.hostingGroup || "",
+      coordinator: req.body.coordinator || "",
+      email: req.body.email || "",
+      phone: req.body.phone || "",
+      link: req.body.link || "",
+      image: req.body.image || "",
+      start: new Date(req.body.start) || new Date(),
+      end: new Date(req.body.end) || new Date()
     }
-
-    // Insert the new post into the 'post' collection
-    const result = await collection.insertOne(newPost)
-
-    console.log('New post created with ID:', result.insertedId)
-    res.status(201).json({ message: 'Post created successfully', postId: result.insertedId })
+    const result = await collection.insertOne(newEvent)
+    res.status(201).json({ message: 'Event created successfully', eventId: result.insertedId })
   } catch (error) {
-    console.error('Error creating post:', error)
-    res.status(500).send('Error creating post')
+    console.error("Error creating event:", error)
+    res.status(500).send("Error creating event")
   }
 })
 
-app.put("/post/:postId", async (req, res) => {
-  try{
-    const collection = client.db('capstone-website').collection('posts');
-    const postId = req.params.postId;
+app.get("/event/getAll", async (req, res) => {
+  try {
+    const collection = client.db('capstone-website').collection('events')
+    const events = await collection.find().toArray()
+    res.status(200).json(events)
+  } catch (error) {
+    console.error("Error fetching events:", error)
+    res.status(500).send("Error fetching events")
+  }
+})
 
-    const updatedPost = {
-      username: req.body.username,
-      title: req.body.title,
-      text: req.body.text,
-      votes: req.body.votes,
-      date: req.body.date,
-      comments: req.body.comments,
-      class: req.body.class,
-      club: req.body.club,
-      pin: req.body.pin,
-    };
+app.get("/event/:id", async (req, res) => {
+  try {
+    const eventId = new ObjectId(req.params.id)
+    const event = await client.db("capstone-website").collection("events").findOne({ _id: eventId })
+    if (!event) return res.status(404).json({ message: "Event not found" })
+    res.status(200).json(event)
+  } catch (error) {
+    console.error("Error fetching event by ID:", error)
+    res.status(500).send("Error fetching event")
+  }
+})
 
-    const result = await collection.updateOne(
-      { _id: new ObjectId(postId) },
-      { $set: updatedPost }
-    );
-
+app.put("/event/:id", async (req, res) => {
+  try {
+    const eventId = new ObjectId(req.params.id)
+    const updatedEvent = {
+      title: req.body.title || "",
+      location: req.body.location || "",
+      summary: req.body.summary || "",
+      hostingGroup: req.body.hostingGroup || "",
+      coordinator: req.body.coordinator || "",
+      email: req.body.email || "",
+      phone: req.body.phone || "",
+      link: req.body.link || "",
+      image: req.body.image || "",
+      start: new Date(req.body.start) || new Date(),
+      end: new Date(req.body.end) || new Date()
+    }
+    const result = await client.db("capstone-website").collection("events").updateOne(
+      { _id: eventId },
+      { $set: updatedEvent }
+    )
     if (result.matchedCount === 0) {
-      return res.status(404).json({ message: "Post not found" });
+      return res.status(404).json({ message: "Event not found" })
     }
-
-    res.status(200).json({ message: "Post updated successfully" });
+    res.status(200).json({ message: "Event updated successfully" })
   } catch (error) {
-    console.error("Error updating post:", error);
-    res.status(500).send("Error updating post");
+    console.error("Error updating event:", error)
+    res.status(500).send("Error updating event")
   }
 })
 
-app.post("/user/register", async (req, res) => {
+app.delete("/event/:id", async (req, res) => {
   try {
-    const collection = client.db('capstone-website').collection('users');
-
-    const { username, email, password } = req.body;
-
-    if (!email.endsWith(".edu")) {
-      return res.status(400).json({ message: "Only school emails are allowed for registration" });
-    }
-    const existingUser = await collection.findOne({ $or: [{ username }, { email }] });
-    if (existingUser) {
-      return res.status(409).json({ message: "Username or email already exists", username: existingUser.username, userEmail: existingUser.email, userRoles: existingUser.roles });
-    }
-    const hashedPassword = await bcrypt.hash(password, 10)
-    const verificationToken = Math.floor(Math.random() * 900) + 100
-    await sendEmail(email, verificationToken)
-    const newUser = {
-      username,
-      email,
-      password: hashedPassword, // Add hashing later?
-      createdAt: new Date(),
-      roles: req.body.roles || ["student"],  // Default to "student" role for now
-      verified: false,
-      token: verificationToken
-    };
-
-    const result = await collection.insertOne(newUser);
-    console.log("New user created with ID:", result.insertedId);
-    return res.status(200).json({ message: "User registered successfully", username: newUser.username, userEmail: newUser.email, userRoles: newUser.roles});
-  } catch (error) {
-    console.error("Error registering user:", error);
-    return res.status(500).send("Error registering user");
-  }
-});
-
-app.post("/user/resend-verification", async (req, res) => {
-  try {
-    const collection = client.db("capstone-website").collection("users");
-    const { email } = req.body;
-
-    const user = await collection.findOne({ email });
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    if (user.verified) {
-      return res.status(400).json({ message: "User is already verified" });
-    }
-
-    const verificationToken = Math.floor(Math.random() * 900) + 100;
-    await sendEmail(email, verificationToken);
-
-    await collection.updateOne(
-      { email },
-      { $set: { token: verificationToken } }
-    );
-
-    res.status(200).json({ message: "Verification email resent successfully" });
-  } catch (error) {
-    console.error("Error resending verification email:", error);
-    res.status(500).send("Error resending verification email");
-  }
-});
-
-app.put("/user/verify", async (req, res) => {
-  try {
-    const collection = client.db('capstone-website').collection('users');
-    const { email, token } = req.body;
-    const user = await collection.findOneAndUpdate({"email": email, "token": token}, {$set:{verified: true}}, {returnDocument: "after"})
-    return res.status(200).json({ message: "Email verified successfully!", user: user });
-  } catch (error) {
-    console.error("Error verifying email:", error);
-    return res.status(500).send("Error verifying email");
-  }
-});
-
-app.post("/user/login", async (req, res) => {
-    try {
-      const { usernameOrEmail, password } = req.body
-
-      const collection = client.db('capstone-website').collection('users')
-
-      const user = await collection.findOne({
-        $or: [{ email: usernameOrEmail }, { username: usernameOrEmail }]
-      })
-      if (!user) {
-        return res.status(404).json({ message: "User not found" })
-      }
-
-      const isPasswordValid = await bcrypt.compare(password, user.password);
-      if (!isPasswordValid) {
-        return res.status(401).json({ message: "Invalid credentials" });
-      }
-
-      res.status(200).json({
-        message: "Login successful",
-        username: user.username,
-        userRoles: user.roles,
-        userEmail: user.email,
-        _id: user._id
-      })
-    } catch (error) {
-      console.error("Error during login:", error)
-      res.status(500).send("Error during login")
-    }
-})
-app.post("/class/add", async (req, res) => {
-  try {
-    const { name, department, number } = req.body
-    const collection = client.db('capstone-website').collection('classes')
-    const newClass = {
-      name,
-      department,
-      number,
-      createdAt: new Date(),
-    }
-
-    const result = await collection.insertOne(newClass)
-    res.status(201).json({ message: "Class added successfully", classId: result.insertedId })
-  } catch (error) {
-    console.error("Error adding class:", error)
-    res.status(500).send("Error adding class")
-  }
-})
-
-
-
-app.get("/class/getAll", async (req, res) => {
-  try {
-    const collection = client.db('capstone-website').collection('classes')
-    const classes = await collection.find({}).toArray()
-
-    res.status(200).json(classes)
-  } catch (error) {
-    console.error("Error fetching classes:", error)
-    res.status(500).send("Error fetching classes")
-  }
-})
-
-app.post("/club/add", async (req, res) => {
-  try {
-    const { name, description, creator, president = "TBD", importantPeople = [] } = req.body
-    const collection = client.db('capstone-website').collection('clubs')
-    const newClub = {
-      name,
-      description,
-      creator,
-      president,
-      importantPeople,
-      createdAt: new Date(),
-    }
-
-    const result = await collection.insertOne(newClub)
-    res.status(201).json({ message: "Club added successfully", clubId: result.insertedId })
-  } catch (error) {
-    console.error("Error adding club:", error)
-    res.status(500).send("Error adding club")
-  }
-})
-
-app.get("/clubs/getAll", async (req, res) => {
-  try {
-    const collection = client.db('capstone-website').collection('clubs')
-    const clubses = await collection.find({}).toArray()
-
-    res.status(200).json(clubses)
-  } catch (error) {
-    console.error("Error fetching clubses:", error)
-    res.status(500).send("Error fetching clubses")
-  }
-})
-
-
-app.get("/both/getAll", async (req, res) => {
-  try {
-    const collection = client.db('capstone-website').collection('clubs')
-    const clubses = await collection.find({}).toArray()
-    const collection2 = client.db('capstone-website').collection('classes')
-    const classes = await collection2.find({}).toArray()
-    const combinedObject = {
-      classes: classes,
-      clubs: clubses
-    }
-
-    res.status(200).json(combinedObject)
-  } catch (error) {
-    console.error("Error fetching clubses:", error)
-    res.status(500).send("Error fetching clubses")
-  }
-})
-
-app.get("/user/getAll", async (req, res) => {
-  try {
-    const collection = client.db('capstone-website').collection('users');
-    const users = await collection.find({}, { projection: { username: 1, email: 1, _id: 1 } }).toArray();
-
-    return res.status(200).json(users);
-  } catch (error) {
-    console.error("Error fetching users:", error);
-    return res.status(500).send("Error fetching users");
-  }
-});
-
-app.delete("/post/:postId", async (req, res) => {
-  try {
-    // constants
-    const collection = client.db('capstone-website').collection('posts');
-    const postId = req.params.postId;
-
-    //delete the post from "post" collection. Same concept from post
-    const result = await collection.deleteOne({ _id: new ObjectId(postId)})
-
-    // error message if post is not deleted (incremented deleted count)
+    const eventId = new ObjectId(req.params.id)
+    const result = await client.db("capstone-website").collection("events").deleteOne({ _id: eventId })
     if (result.deletedCount === 0) {
-      return res.status(404).json({ message: "Post not found" });
+      return res.status(404).json({ message: "Event not found" })
     }
-
-    //post deleted yay
-    res.status(200).json({ message: "Post deleted successfully" });
+    res.status(200).json({ message: "Event deleted successfully" })
   } catch (error) {
-    console.error("Error deleting post:", error);
-    res.status(500).send("Error deleting post");
+    console.error("Error deleting event:", error)
+    res.status(500).send("Error deleting event")
   }
-});
+})
+
+// ---------------------- CONTINUE WITH EXISTING ROUTES BELOW THIS ----------------------
 
 app.get("/class/:className", async (req, res) => {
   try {
@@ -561,4 +344,3 @@ app.get("/event/getAll", async (req, res) => {
 app.listen(port, () => {
   console.log(`App running on port ${port}.`)
 })
-
