@@ -25,7 +25,6 @@ const localizer = dateFnsLocalizer({
 
 
 
-// Custom Agenda Event Display
 const CustomAgendaEvent = ({
     event,
     selectedEvent,
@@ -39,6 +38,12 @@ const CustomAgendaEvent = ({
     if (searchTerm && !event.title.toLowerCase().includes(searchTerm.toLowerCase())) {
         return null;
     }
+
+    const formatField = (field, fallback = "Not provided") => {
+        if (!field) return fallback;
+        if (typeof field === "object") return JSON.stringify(field);
+        return field;
+    };
 
     return (
         <div
@@ -67,17 +72,17 @@ const CustomAgendaEvent = ({
         >
             <strong>{event.title}</strong>
             <br />
-            📍 <strong>Location:</strong> {event.location || "No location specified"}
+            📍 <strong>Location:</strong> {formatField(event.location, "No location specified")}
             <br />
-            📝 <strong>Summary:</strong> {event.summary || "No summary provided"}
+            📝 <strong>Summary:</strong> {formatField(event.summary, "No summary provided")}
             <br />
-            🏢 <strong>Hosting Group:</strong> {event.hostingGroup || "Not provided"}
+            🏢 <strong>Hosting Group:</strong> {formatField(event.hostingGroup)}
             <br />
-            👤 <strong>Event Coordinator:</strong> {event.coordinator || "Not provided"}
+            👤 <strong>Event Coordinator:</strong> {formatField(event.coordinator)}
             <br />
-            📧 <strong>Email:</strong> {event.email || "Not provided"}
+            📧 <strong>Email:</strong> {formatField(event.email)}
             <br />
-            📞 <strong>Phone:</strong> {event.phone || "Not provided"}
+            📞 <strong>Phone:</strong> {formatField(event.phone)}
             <br />
             {event.link && (
                 <>
@@ -119,6 +124,7 @@ const CustomAgendaEvent = ({
 
 
 
+
 const CalendarPage = () => {
     const { theme } = useGlobalContext();
     const [events, setEvents] = useState([]);
@@ -156,18 +162,28 @@ const CalendarPage = () => {
         </Select>
     </FormControl>
 
-    useEffect(() => {
-        const fetchCalendarData = async () => {
-            try {
-                const response = await fetch(`http://localhost:3001/event/getAll?hasStart=true`)
-                const doc = await response.json()
-                setEvents(doc.map((e, index) => ({ ...e, id: index, start: new Date(e.start), end: new Date(e.end) }))); // Assign unique IDs
-            } catch (error) {
-                console.error("Calendar Error:", error);
-            }
-        };
-        fetchCalendarData();
-    }, []);
+useEffect(() => {
+    const fetchCalendarData = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/event/getAll');
+        const doc = await response.json();
+  
+        const parsedEvents = doc.map((e, index) => ({
+          ...e,
+          id: e._id || index,
+          start: new Date(e.start),
+          end: new Date(e.end),
+        }));
+  
+        setEvents(parsedEvents);
+      } catch (error) {
+        console.error("Calendar Error:", error);
+      }
+    };
+  
+    fetchCalendarData();
+  }, []);
+  
 
     // Auto-scroll to the selected event in Agenda View
     useEffect(() => {
@@ -207,7 +223,7 @@ const CalendarPage = () => {
     }, [searchTerm, selectedLocation, selectedHostingGroup, selectedCoordinator, events]);
     
 
-    // Open the edit modal
+    
     const handleEditClick = (event) => {
         setSelectedEvent(event);
         setModalData({
@@ -224,46 +240,62 @@ const CalendarPage = () => {
         setModalOpen(true);
     };
 
-    // Handle input changes in modal
+    
     const handleModalChange = (e) => {
         setModalData({ ...modalData, [e.target.name]: e.target.value });
     };
 
-    // Save edited event
     const handleModalSave = async () => {
-        if(selectedEvent) {
-            const updatedEvent = { ...selectedEvent, ...modalData };
-            setEvents(events.map(e => (e.id === selectedEvent.id ? updatedEvent : e)));
-        } else{
-            const newEvent = {
-                id: events.length,
-                ...modalData,
-                start: modalData.start || new Date(),
-                end: modalData.end || new Date(),
-            };
-            setEvents([...events, newEvent]);
-            const response = await fetch('http://localhost:3001/event', {
-                method: 'POST',
-                headers: {
-                'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(newEvent),
-              })
+        const eventToSave = {
+          ...modalData,
+          start: modalData.start || new Date(),
+          end: modalData.end || new Date()
         }
-        setModalOpen(false);
-        setSelectedEvent(null);
-    };
+      
+        try {
+          if (selectedEvent && selectedEvent._id) {
+            
+            await fetch(`http://localhost:3001/event/${selectedEvent._id}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(eventToSave)
+            })
+          } else {
+            
+            await fetch("http://localhost:3001/event", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(eventToSave)
+            })
+          }
+          
+          const response = await fetch('http://localhost:3001/event/getAll')
+          const doc = await response.json()
+          setEvents(doc.map((e, index) => ({ ...e, id: e._id || index, start: new Date(e.start), end: new Date(e.end) })))
+        } catch (err) {
+          console.error("Error saving event:", err)
+        }
+      
+        setModalOpen(false)
+        setSelectedEvent(null)
+      }
+      
 
-    // Delete an event
-    const handleDeleteEvent = (event) => {
-        const confirmDelete = window.confirm(`Are you sure you want to delete "${event.title}"?`);
-        if (!confirmDelete) return;
+      const handleDeleteEvent = async (event) => {
+        const confirmDelete = window.confirm(`Are you sure you want to delete "${event.title}"?`)
+        if (!confirmDelete) return
+      
+        try {
+          await fetch(`http://localhost:3001/event/${event._id}`, { method: "DELETE" })
+          setEvents(events.filter(e => e._id !== event._id))
+        } catch (error) {
+          console.error("Error deleting event:", error)
+        }
+      }
+      
 
-        setEvents(events.filter(e => e.id !== event.id)); // Remove from state
-    };
-
-    // Add a new event
     const handleAddEvent = (slotInfo) => {
+        
         setModalData({
             title: '',
             location: '',
