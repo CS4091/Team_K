@@ -16,6 +16,7 @@ const MapPage = () => {
   const { theme, isModalOpen, setIsModalOpen } = useGlobalContext();
   const [address, setAddress] = useState('');
   const [filteredAddresses, setFilteredAddresses] = useState([]);
+  const [arePinsLoaded, setArePinsLoaded] = useState(false)
 
   const hardcodedAddresses = [
     { name: "Computer Science Building", lat: 37.95586, lng: -91.77464 },
@@ -27,12 +28,17 @@ const MapPage = () => {
     const response = await fetch(`http://localhost:3001/event/getAll`)
     const doc = await response.json()
     const newPins = doc.map(p => {
-      const newMarker = L.marker(p.latlng).addTo(map)
-        .bindPopup(`<b>${pinName}</b><br>Lat: ${p.latlng.lat.toFixed(5)}<br>Lng: ${p.latlng.lng.toFixed(5)}`)
+      console.log({p})
+      if (p.latlng?.lng) {
+        const newMarker = L.marker(p.latlng).addTo(map)
+        .bindPopup(`<b>${p?.name}</b><br>Lat: ${p.latlng.lat.toFixed(5)}<br>Lng: ${p.latlng.lng.toFixed(5)}`)
         .openPopup();
-      const newP = {...p, marker: newMarker}
-      return newP
+        const newP = {...p, marker: newMarker}
+        return newP
+      }
+      
     })
+    filteredPins = newPins.filter(pin => pin.pinId)
     setPins(newPins)
   }
 
@@ -74,9 +80,12 @@ const MapPage = () => {
 
   useEffect(() => {
     if (!map) return;
-    if (pins.length == 0) {
+    if (!arePinsLoaded){
       getAllPins()
+      setArePinsLoaded(true)
     }
+      
+    
     const handleMapClick = (e) => {
       if (pinMode) {
         setPinLocation(e.latlng);
@@ -212,7 +221,7 @@ const MapPage = () => {
           <select onChange={handlePinSelect}>
             <option value="">Select a Pin</option>
             {pins.map((pin) => (
-              <option key={pin.id} value={pin.id}>{pin.name}</option>
+              <option key={pin?.pinId} value={pin?.pinId}>{pin.name}</option>
             ))}
           </select>
         </div>
@@ -222,7 +231,7 @@ const MapPage = () => {
             <select onChange={(e) => handleDeletePin(Number(e.target.value))}>
               <option value="">-- Select Pin --</option>
               {pins.map((pin) => (
-                <option key={pin.id} value={pin.id}>{pin.name}</option>
+                <option key={pin?.pinId} value={pin?.pinId}>{pin.name}</option>
               ))}
             </select>
           </div>
