@@ -44,14 +44,12 @@ const UserPage = () => {
     }
 
     useEffect(() => {
-        getUserPosts()
+        user.username ? getUserPosts() : null
     }, [user.username])
 
-    const handleSignOut = () => {
-      // Clear user session or any necessary logout logic
-      // console.log("User signed out")
+    const handleSignOut = async () => {
       setUser({})
-      removeCookie('user')
+      await removeCookie('user')
       setOpenDialog(false)
     }
 
@@ -60,9 +58,9 @@ const UserPage = () => {
         <ThemeProvider theme={theme}>
           <TopBar></TopBar>
           {user.username  ? (
-            <div>
+            <div style={{gap:10}}>
                 <Typography variant='h3'>Posts for: {user.username}</Typography>
-                <Button variant="contained" color="primary" onClick={() => setOpenDialog(true)}>Sign Out</Button>
+                <Button style={{margineRight:'10rem'}} variant="contained" color="primary" onClick={() => setOpenDialog(true)}>Sign Out</Button>
                 <Button variant="contained" color="primary" onClick={resendVerificationEmail}>Resend Verification Email</Button>
               {userPosts.length > 0 ? (
                 <Grid container spacing={3}>
@@ -74,7 +72,7 @@ const UserPage = () => {
                     )
                 })}
                 </Grid>
-              ) : (<>No posts found</>)}
+              ) : (<div><h2>No posts found</h2></div>)}
              
             </div>
           ) : (
