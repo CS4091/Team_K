@@ -10,6 +10,7 @@ import PostCard from '../Components/PostCard'
 const CPage = () => {
     const {theme, isModalOpen, setIsModalOpen, searched, setSearched, cPosts, cObject, setCPosts, setCObject} = useGlobalContext()
     const {cName} = useParams()
+    const [loaded, setLoaded] = useState(false)
     const [announcement, setAnnouncement] = useState('')
     const [isEditing, setIsEditing] = useState(false)
     const [isSnackOpen, setIsSnackOpen] = useState(false)  // Added state for Snackbar
@@ -19,7 +20,8 @@ const CPage = () => {
         const response = await fetch(`http://localhost:3001/c/${cName}`)
         const object = await response.json()
         setCObject(object.data)
-        setCPosts(object.posts) //sort pins
+        setLoaded(true)
+        setCPosts(object.posts)
         setSearched(true)
         if (object.data.announcement) {
             setAnnouncement(object.data.announcement)  // Set fetched announcement
@@ -36,13 +38,13 @@ const CPage = () => {
                     })
                 )
             }
-        }, [searched, cPosts])
+        }, [cPosts])
 
     return (
         <div>
             <ThemeProvider theme={theme}>
                 <TopBar/>
-                {cObject? (
+                {cObject.name ? (
                     <div>
                         <Box className="rounded-lg p-6 mb-6 text-center">
                             <Typography variant='h4' gutterBottom>{cObject.name}</Typography>
@@ -65,7 +67,7 @@ const CPage = () => {
                     </div>
                 ) : (
                     <>Loading...</>
-                )}
+                )} 
                 <UserModal isOpen={isModalOpen} setIsOpen={setIsModalOpen}/>
             </ThemeProvider>
         </div>

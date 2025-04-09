@@ -16,12 +16,31 @@ const MapPage = () => {
   const { theme, isModalOpen, setIsModalOpen } = useGlobalContext();
   const [address, setAddress] = useState('');
   const [filteredAddresses, setFilteredAddresses] = useState([]);
+  const [arePinsLoaded, setArePinsLoaded] = useState(false)
 
   const hardcodedAddresses = [
     { name: "Computer Science Building", lat: 37.95586, lng: -91.77464 },
     { name: "Library", lat: 37.95556, lng: -91.77355 },
     { name: "Havener Center", lat: 37.95491, lng: -91.77624 }
   ];
+
+  const getAllPins = async () => {
+    const response = await fetch(`http://localhost:3001/event/getAll`)
+    const doc = await response.json()
+    const newPins = doc.map(p => {
+      console.log({p})
+      if (p.latlng?.lng) {
+        const newMarker = L.marker(p.latlng).addTo(map)
+        .bindPopup(`<b>${p?.name}</b><br>Lat: ${p.latlng.lat.toFixed(5)}<br>Lng: ${p.latlng.lng.toFixed(5)}`)
+        .openPopup();
+        const newP = {...p, marker: newMarker}
+        return newP
+      }
+      
+    })
+    filteredPins = newPins.filter(pin => pin.pinId)
+    setPins(newPins)
+  }
 
   useEffect(() => {
     const bounds = [
@@ -53,7 +72,7 @@ const MapPage = () => {
     
 
     setMap(newMap);
-
+    
     return () => {
       newMap.remove();
     };
@@ -61,7 +80,12 @@ const MapPage = () => {
 
   useEffect(() => {
     if (!map) return;
-
+    if (!arePinsLoaded){
+      getAllPins()
+      setArePinsLoaded(true)
+    }
+      
+    
     const handleMapClick = (e) => {
       if (pinMode) {
         setPinLocation(e.latlng);
@@ -76,13 +100,21 @@ const MapPage = () => {
     };
   }, [map, pinMode]);
 
-  const handlePinSubmit = () => {
+  const handlePinSubmit = async () => {
     if (map && pinLocation && pinName.trim()) {
       const newMarker = L.marker(pinLocation).addTo(map)
         .bindPopup(`<b>${pinName}</b><br>Lat: ${pinLocation.lat.toFixed(5)}<br>Lng: ${pinLocation.lng.toFixed(5)}`)
         .openPopup();
-
-      setPins((prevPins) => [...prevPins, { id: Date.now(), name: pinName, latlng: pinLocation, marker: newMarker }]);
+      const newPin = { id: Date.now(), name: pinName, latlng: pinLocation, }
+      const response = await fetch('http://localhost:3001/event', {
+        method: 'POST',
+        headers: {
+        'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newPin),
+      })
+      const mapPin = {...newPin, marker: newMarker}
+      setPins((prevPins) => [...prevPins, mapPin]);
       setShowPinModal(false);
       setPinName('');
       setPinLocation(null);
@@ -189,7 +221,7 @@ const MapPage = () => {
           <select onChange={handlePinSelect}>
             <option value="">Select a Pin</option>
             {pins.map((pin) => (
-              <option key={pin.id} value={pin.id}>{pin.name}</option>
+              <option key={pin?.pinId} value={pin?.pinId}>{pin.name}</option>
             ))}
           </select>
         </div>
@@ -199,7 +231,7 @@ const MapPage = () => {
             <select onChange={(e) => handleDeletePin(Number(e.target.value))}>
               <option value="">-- Select Pin --</option>
               {pins.map((pin) => (
-                <option key={pin.id} value={pin.id}>{pin.name}</option>
+                <option key={pin?.pinId} value={pin?.pinId}>{pin.name}</option>
               ))}
             </select>
           </div>

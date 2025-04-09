@@ -57,7 +57,7 @@ const UserModal = ({isOpen, setIsOpen}) => {
                 userEmail: data.userEmail,
                 userRoles: data.userRoles,
                 _id: data._id,
-		verified: data.verified
+		        verified: data.verified
             }
             setUser(curUser)
             if(checked) {
