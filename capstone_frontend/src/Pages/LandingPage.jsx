@@ -66,10 +66,10 @@ const LandingPage = () => {
             </Box>
 
             <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
-                <Typography variant="body1" sx={{ marginRight: '10px' }}></Typography>
+                <Typography variant="body1" sx={{ marginRight: '10px' }}>List View</Typography>
                 <FormControlLabel
                     control={<Switch checked={isGridView} onChange={handleViewToggle} />}
-                    label="Change View Mode"
+                    label="Grid View"
                 />
             </Box>
 
