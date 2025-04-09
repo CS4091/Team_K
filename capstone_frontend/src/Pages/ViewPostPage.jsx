@@ -40,6 +40,8 @@ const ViewPostPage = () => {
         const doc = await response.json()
         if (doc.message === 'Post pinned successfully' || doc.message === 'Post unpinned successfully') {
             setPost(newPost)
+            setIsSnackOpen(true)
+            setSnackMessage(doc.message)
         }
     }
 
@@ -81,7 +83,7 @@ const ViewPostPage = () => {
                                 <IconButton onClick={handlePin} aria-label="pin">
                                     <PinIcon color={post.pin ? "error" : "action"} />
                                 </IconButton>
-                            </div>
+                        </div>
                         <div class="pt-4 ">{post.text}</div>
                         <div class="pt-8 "><Upvote post={post} setPost={setPost} commentText={""}/></div>
                         <div class="pt-4"><b>Enter your comment:</b></div>
