@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react'
 import { useGlobalContext } from '../Context/GlobalContext';
 // import axios from 'axios';
 import { Snackbar } from '@mui/material'
+import { useCookies } from 'react-cookie';
 
 const style = {
     position: 'absolute',
@@ -20,14 +21,15 @@ const style = {
   };
   
 const UserModal = ({isOpen, setIsOpen}) => {
-    const {user, setUser} = useGlobalContext()
+    const {user, setUser, cookies, setCookie, removeCookie} = useGlobalContext()
     const [tempName, setTempName] = useState('')
     const [tempPass, setTempPass] = useState('')
     const [tempEmail, setTempEmail] = useState('')
     const [isSnackOpen, setIsSnackOpen] = useState(false)
     const [snackMessage, setSnackMessage] = useState("")
     const [create, setCreate] = useState(false)
-
+    const [checked, setChecked] = useState(false)
+    
     const handleSignIn = async () => {
         const response = await fetch("http://localhost:3001/user/login", {
             method: "POST",
@@ -50,13 +52,17 @@ const UserModal = ({isOpen, setIsOpen}) => {
         } else if (data.message == "Login successful"){
             setSnackMessage("Login successful")
             setIsSnackOpen(true)
-            setUser({
+            const curUser = {
                 username: data.username,
                 userEmail: data.userEmail,
                 userRoles: data.userRoles,
                 _id: data._id,
-                verified: data.verified
-            })
+		        verified: data.verified
+            }
+            setUser(curUser)
+            if(checked) {
+                setCookie('user', curUser)
+            }
             setIsOpen(false)
         } else {
             setSnackMessage("Error logging in")
@@ -84,11 +90,15 @@ const UserModal = ({isOpen, setIsOpen}) => {
         } else if (data.message == "User registered successfully") {
             setSnackMessage("Account Created successfully")
             setIsSnackOpen(true)
-            setUser({
+            const curUser = {
                 username: data.username,
                 userEmail: data.userEmail,
                 userRoles: data.userRoles
-            })
+            }
+            setUser(curUser)
+            if(checked) {
+                setCookie('user', curUser)
+            }
             setIsOpen(false)
         } else {
             setSnackMessage("Error creating account")
@@ -111,6 +121,11 @@ const UserModal = ({isOpen, setIsOpen}) => {
                             <input type="text" style={{'outline':'1px solid black'}} value={tempEmail} onChange={e => setTempEmail(e.target.value)} variant='outlined'/>
                             <h3>Password:</h3>
                             <input type="password" style={{'outline':'1px solid black'}} value={tempPass} onChange={e => setTempPass(e.target.value)} variant='outlined'/>
+                            <div style={{marginTop:'1rem'}}>
+                                <label>
+                                    Stay signed in? <input type="checkbox" checked={checked} onChange={() => setChecked(!checked)}></input>
+                                </label>
+                            </div>
                             <div style={{paddingTop: '1rem', display:'flex', justifyContent:'center'}}>
                                 <Button style={{marginRight:'1rem'}} variant='outlined' onClick={() => setCreate(false)}>Sign in</Button>
                                 <Button variant='contained' onClick={() => handleCreate()} disabled={!tempEmail || !tempName || !tempPass}>Create Account</Button>
@@ -125,6 +140,11 @@ const UserModal = ({isOpen, setIsOpen}) => {
                             <input type="text" style={{'outline':'1px solid black'}} value={tempName} onChange={e => setTempName(e.target.value)} variant='outlined'/>
                             <h3>Password:</h3>
                             <input type="password" style={{'outline':'1px solid black'}} value={tempPass} onChange={e => setTempPass(e.target.value)} variant='outlined'/>
+                            <div style={{marginTop:'1rem'}}>
+                                <label>
+                                    Stay signed in? <input type="checkbox" checked={checked} onChange={() => setChecked(!checked)}></input>
+                                </label>
+                            </div>
                             <div style={{paddingTop: '1rem', display:'flex', justifyContent:'center'}}>
                                 <Button style={{marginRight:'1rem'}} variant='contained' onClick={() => handleSignIn()}>Sign in</Button>
                                 <Button variant='outlined' onClick={() => setCreate(true)}>Create Account</Button>
