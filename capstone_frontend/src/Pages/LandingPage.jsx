@@ -4,14 +4,15 @@ import { ThemeProvider } from '@emotion/react'
 import TopBar from '../Components/TopBar'
 import UserModal from '../Components/UserModal'
 import PostCard from '../Components/PostCard'
-import { Typography, Box, Grid, TextField, Button } from '@mui/material'
+import { Typography, Box, Grid, TextField, Button, Switch, FormControlLabel } from '@mui/material'
 import {Snackbar} from '@mui/material'
 
 const LandingPage = () => {
-    //use javascript up here
     const {theme, isModalOpen, setIsModalOpen, isSnackOpen, snackMessage, setIsSnackOpen} = useGlobalContext()
     const [recentPosts, setRecentPosts] = useState([])
     const [searchText, setSearchText] = useState("")
+    const [isGridView, setIsGridView] = useState(true); // State to toggle grid/list view
+
 
     const getRecentPosts = async () => {
         const response = await fetch("http://localhost:3001/posts/getRecent")
@@ -24,6 +25,10 @@ const LandingPage = () => {
         const response = await fetch(`http://localhost:3001/search?query=${searchText}`)
         const data = await response.json()
         setRecentPosts(data)
+    }
+
+    const handleViewToggle = () => {
+        setIsGridView(prevState => !prevState);
     }
 
     useEffect(() => {
@@ -43,15 +48,14 @@ const LandingPage = () => {
                     alignItems: 'center',
                     backgroundColor: theme.palette.primary.main,
                     color: theme.palette.primary.contrastText,
-                    textAlgin: 'center',
+                    textAlign: 'center',
                     marginTop: '1rem',
                     marginBottom: '2rem'
                 }}            
             >
                 <Typography variant="h1">Miner Board</Typography>
-                <Typography variant="h6">Questions for everying S&T related</Typography>
             </Box>
-            <Box sx={{ display: 'flex', gap: 1, marginBottom: 2 }}>
+            <Box sx={{ display: 'flex', gap: 1, marginBottom: 2, position: 'sticky', top: 0, zIndex: 10, backgroundColor: theme.palette.background.paper, padding: '10px 0',}}>
                 <TextField
                     variant="outlined"
                     fullWidth
@@ -62,24 +66,42 @@ const LandingPage = () => {
                 <Button variant="contained" color="primary" onClick={handleSearch}>Search</Button>
             </Box>
 
-            <Typography variant="h6">Posts:</Typography>
-            {recentPosts ? (
-                <Grid container spacing={3}>
-                {recentPosts.map((post, index) => {
-                    return (
-                        <Grid item xs={12} key={index}>
-                            <PostCard post={post} hidepin={true} /> {/* set to false to show pins*/}
+            {/* View Toggle Switch */}
+            <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
+                <Typography variant="body1" sx={{ marginRight: '10px' }}></Typography>
+                <FormControlLabel
+                    control={<Switch checked={isGridView} onChange={handleViewToggle} />}
+                    label="Change View Mode"
+                />
+            </Box>
+
+            <Typography variant="h6" sx={{ marginBottom: '1.5rem' }}>Posts:</Typography>
+                {recentPosts.length > 0 ? (
+                    isGridView ? ( // Render grid view
+                        <Grid container spacing={3}>
+                            {recentPosts.map((post, index) => (
+                                <Grid item xs={12} sm={6} md={4} key={index} sx={{ display: 'flex', flexDirection: 'column', marginBottom: '1rem', border: '2px solid #ddd', borderRadius: '8px', padding: '10px' }}>
+                                    {/* Added custom styling to PostCard */}
+                                    <PostCard post={post} hidepin={true} />
+                                </Grid>
+                            ))}
                         </Grid>
+                    ) : ( // Render list view
+                        <Box>
+                            {recentPosts.map((post, index) => (
+                                <Box key={index} sx={{ display: 'flex', flexDirection: 'column', marginBottom: '1rem', border: '2px solid #ddd', borderRadius: '8px', padding: '10px' }}>
+                                    <PostCard post={post} hidepin={true} />
+                                </Box>
+                            ))}
+                        </Box>
                     )
-                })}
-                </Grid>
-            ) : (<>
-            </>)}
-           
-            
-            <Snackbar open={isSnackOpen} autoHideDuration={3000} onClose={() => setIsSnackOpen(false)} anchorOrigin={{vertical: 'bottom', horizontal: 'center'}} message={snackMessage}/>
+                ) : (
+                    <Typography>No posts available</Typography>
+                )}
+
+                <Snackbar open={isSnackOpen} autoHideDuration={3000} onClose={() => setIsSnackOpen(false)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} message={snackMessage} />
+                <UserModal isOpen={isModalOpen} setIsOpen={setIsModalOpen} />
             </ThemeProvider>
-            <UserModal isOpen={isModalOpen} setIsOpen={setIsModalOpen}/>
         </div>
     )
 }
