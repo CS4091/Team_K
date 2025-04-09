@@ -413,7 +413,7 @@ useEffect(() => {
                                     onMouseLeave={() => setHoveredCalendarEvent(null)}
                                     style={{
                                         backgroundColor: hoveredCalendarEvent === event.id ? "white" : theme.palette.primary.main,
-                                        color: hoveredCalendarEvent === event.id ? "black" : theme.palette.primary.main,
+                                        color: hoveredCalendarEvent === event.id ? "black" : "white",
                                         padding: "5px",
                                         borderRadius: "4px",
                                         cursor: "pointer",
