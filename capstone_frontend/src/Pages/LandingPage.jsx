@@ -11,8 +11,7 @@ const LandingPage = () => {
     const {theme, isModalOpen, setIsModalOpen, isSnackOpen, snackMessage, setIsSnackOpen} = useGlobalContext()
     const [recentPosts, setRecentPosts] = useState([])
     const [searchText, setSearchText] = useState("")
-    const [isGridView, setIsGridView] = useState(true); // State to toggle grid/list view
-
+    const [isGridView, setIsGridView] = useState(true)
 
     const getRecentPosts = async () => {
         const response = await fetch("http://localhost:3001/posts/getRecent")
@@ -66,7 +65,6 @@ const LandingPage = () => {
                 <Button variant="contained" color="primary" onClick={handleSearch}>Search</Button>
             </Box>
 
-            {/* View Toggle Switch */}
             <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
                 <Typography variant="body1" sx={{ marginRight: '10px' }}></Typography>
                 <FormControlLabel
@@ -77,16 +75,15 @@ const LandingPage = () => {
 
             <Typography variant="h6" sx={{ marginBottom: '1.5rem' }}>Posts:</Typography>
                 {recentPosts.length > 0 ? (
-                    isGridView ? ( // Render grid view
+                    isGridView ? (
                         <Grid container spacing={3}>
                             {recentPosts.map((post, index) => (
-                                <Grid item xs={12} sm={6} md={4} key={index} sx={{ display: 'flex', flexDirection: 'column', marginBottom: '1rem', border: '2px solid #ddd', borderRadius: '8px', padding: '10px' }}>
-                                    {/* Added custom styling to PostCard */}
+                                <Grid item xs={12} sm={6} md={4} key={index} sx={{ display: 'flex', flexDirection: 'column', marginBottom: '1rem' }}>
                                     <PostCard post={post} hidepin={true} />
                                 </Grid>
                             ))}
                         </Grid>
-                    ) : ( // Render list view
+                    ) : (
                         <Box>
                             {recentPosts.map((post, index) => (
                                 <Box key={index} sx={{ display: 'flex', flexDirection: 'column', marginBottom: '1rem', border: '2px solid #ddd', borderRadius: '8px', padding: '10px' }}>
