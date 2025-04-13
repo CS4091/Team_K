@@ -76,6 +76,8 @@ app.post("/post", async (req, res) => {
       class: req.body.class || "",
       club: req.body.club || "",
       pin: req.body.pin || false,
+      likedBy: req.body.likedBy || [],
+      dislikedBy: req.body.dislikedBy || []
     }
 
     // Insert the new post into the 'post' collection
@@ -104,18 +106,20 @@ app.put("/post/:postId", async (req, res) => {
       class: req.body.class,
       club: req.body.club,
       pin: req.body.pin,
+      likedBy : req.body.likedBy,
+      dislikedBy: req.body.dislikedBy
     };
 
-    const result = await collection.updateOne(
+    const result = await collection.findOneAndUpdate(
       { _id: new ObjectId(postId) },
-      { $set: updatedPost }
-    );
-
-    if (result.matchedCount === 0) {
+      { $set: updatedPost },
+      { returnDocument: "after" } // returns the updated document
+    )
+    if (!result) {
       return res.status(404).json({ message: "Post not found" });
     }
 
-    res.status(200).json({ message: "Post updated successfully" });
+    res.status(200).json({ message: "Post updated successfully", post: result });
   } catch (error) {
     console.error("Error updating post:", error);
     res.status(500).send("Error updating post");

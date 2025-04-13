@@ -53,7 +53,7 @@ const ViewPostPage = () => {
         <div>
             <ThemeProvider theme={theme}>
             <TopBar></TopBar>
-            {post.comments ? (
+            {post?.comments ? (
                 <div class="grid grid-cols-10 gap-4 divide-x-2 divide-black ">      
                     <div class="col-span-1">01</div>
                     <div class="col-span-7 pt-2 pl-8 pr-8">
