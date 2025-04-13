@@ -110,16 +110,16 @@ app.put("/post/:postId", async (req, res) => {
       dislikedBy: req.body.dislikedBy
     };
 
-    const result = await collection.updateOne(
+    const result = await collection.findOneAndUpdate(
       { _id: new ObjectId(postId) },
-      { $set: updatedPost }
-    );
-
-    if (result.matchedCount === 0) {
+      { $set: updatedPost },
+      { returnDocument: "after" } // returns the updated document
+    )
+    if (!result) {
       return res.status(404).json({ message: "Post not found" });
     }
 
-    res.status(200).json({ message: "Post updated successfully" });
+    res.status(200).json({ message: "Post updated successfully", post: result });
   } catch (error) {
     console.error("Error updating post:", error);
     res.status(500).send("Error updating post");
