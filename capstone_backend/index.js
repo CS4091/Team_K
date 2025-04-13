@@ -76,6 +76,8 @@ app.post("/post", async (req, res) => {
       class: req.body.class || "",
       club: req.body.club || "",
       pin: req.body.pin || false,
+      likedBy: req.body.likedBy || [],
+      dislikedBy: req.body.dislikedBy || []
     }
 
     // Insert the new post into the 'post' collection
@@ -104,6 +106,8 @@ app.put("/post/:postId", async (req, res) => {
       class: req.body.class,
       club: req.body.club,
       pin: req.body.pin,
+      likedBy : req.body.likedBy,
+      dislikedBy: req.body.dislikedBy
     };
 
     const result = await collection.updateOne(

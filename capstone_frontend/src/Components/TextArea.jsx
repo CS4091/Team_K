@@ -32,7 +32,9 @@ const OutlinedTextarea = ({post, setPost}) => {
         const newComment = {
             comment: text,
             username: user.username,
-            votes: 0
+            votes: 0,
+            likedBy: [],
+            dislikedBy: []
         }
         const newPost = post
         newPost.comments = [newComment, ...newPost.comments]
