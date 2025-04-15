@@ -35,7 +35,7 @@ const CustomAgendaEvent = ({
     theme,
     searchTerm
 }) => {
-    if (searchTerm && !event.title.toLowerCase().includes(searchTerm.toLowerCase())) {
+    if (searchTerm && !event?.title.toLowerCase().includes(searchTerm?.toLowerCase())) {
         return null;
     }
 
@@ -105,7 +105,7 @@ const CustomAgendaEvent = ({
                     <br />
                 </>
             )}
-            <Button size="small" onClick={() => onEdit(event)} variant="outlined" color="white">
+            <Button size="small" onClick={() => onEdit(event)} variant="outlined" color="black">
                 Edit
             </Button>
             <Button
@@ -174,8 +174,8 @@ useEffect(() => {
           start: new Date(e.start),
           end: new Date(e.end),
         }));
-  
-        setEvents(parsedEvents);
+        const realEvents = parsedEvents.filter(event => event.title)
+        setEvents(realEvents);
       } catch (error) {
         console.error("Calendar Error:", error);
       }
@@ -200,7 +200,7 @@ useEffect(() => {
     const handleSearch = (e) => {
         e.preventDefault();
         const filtered = events.filter(event =>
-            event.title.toLowerCase().includes(searchTerm.toLowerCase())
+            event?.title.toLowerCase().includes(searchTerm?.toLowerCase())
         );
         setFilteredEvents(filtered);
     };
@@ -208,7 +208,7 @@ useEffect(() => {
     useEffect(() => {
         let filtered = events;
         if (searchTerm) {
-            filtered = filtered.filter(event => event.title.toLowerCase().includes(searchTerm.toLowerCase()));
+            filtered = filtered.filter(event => event?.title.toLowerCase().includes(searchTerm?.toLowerCase()));
         }
         if (selectedLocation) {
             filtered = filtered.filter(event => event.location === selectedLocation);
