@@ -10,7 +10,7 @@ import enUS from 'date-fns/locale/en-US';
 import "../index.css";
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import TopBar from '../Components/TopBar';
-import { Modal, Button, TextField, Box, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { Modal, Button, TextField, Box, Select, MenuItem, FormControl, InputLabel, Typography } from '@mui/material';
 
 
 
@@ -136,6 +136,8 @@ const CalendarPage = () => {
     const [hoveredEvent, setHoveredEvent] = useState(null);
     const [hoveredSlot, setHoveredSlot] = useState(null);
     const [hoveredCalendarEvent, setHoveredCalendarEvent] = useState(null);
+    const [isRecurring, setIsRecurring] = useState(null);
+    const [recurringDates, setRecurringDates] = useState([]);
     const [modalData, setModalData] = useState({
         title: '', location: '', summary: '', hostingGroup: '', coordinator: '', email: '', phone: '', link: '', image: ''
     });
@@ -206,6 +208,43 @@ const CalendarPage = () => {
         setFilteredEvents(filtered);
     }, [searchTerm, selectedLocation, selectedHostingGroup, selectedCoordinator, events]);
     
+    //finding location of dates by weekday
+    const getAllWeekdayDates = (day) => {
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const dayIndex = days.indexOf(dayName);
+        const today = new Date();
+        const month = today.getMonth();
+        const year = today.getFullYear();
+        const dates = [];
+
+        for(let i = new Date(year, month, 1); i.getMonth() === month; i.setDate(i.getDate() + 1)) {
+            if(i.getDay() === dayIndex) {
+                dates.push(new Date(i));
+            }
+        }
+        return dates;
+    }
+
+    useEffect(() => {
+        if(!isRecurring) return;
+        const headers = document.querySelectorAll(".rbc-header span");
+        const listeners = Array.from(headers).map((header) => {
+            const handleClick = () => {
+                const weekdayDates = getAllWeekdayDates(text);
+                setRecurringDates(prev =>
+                    [...new Set([...prev.map(d => d.toDateString()), ...weekdayDates.map(d => d.toDateString())])]
+                        .map(date => new Date(date))
+                );
+            };
+
+            header.addEventListener("click", handleClick);
+            return () => header.removeEventListener("click", handleClick);
+        });
+
+        return () => {
+            listeners.forEach(cleanup => cleanup?.());
+        };
+    }, [isRecurring]);
 
     // Open the edit modal
     const handleEditClick = (event) => {
@@ -231,21 +270,34 @@ const CalendarPage = () => {
 
     // Save edited event
     const handleModalSave = () => {
-        if(selectedEvent) {
-            const updatedEvent = { ...selectedEvent, ...modalData };
-            setEvents(events.map(e => (e.id === selectedEvent.id ? updatedEvent : e)));
-
-        } else{
-            const newEvent = {
-                id: events.length,
+        if(isRecurring) {
+            const newEvents = recurringDates.map((date, index) => ({
+                id: events.length + index,
                 ...modalData,
-                start: modalData.start || new Date(),
-                end: modalData.end || new Date(),
-            };
-            setEvents([...events, newEvent]);
+                start: new Date(date.setHours(9, 0, 0, 0)),
+                end: new Date(date.setHours(10, 0, 0, 0)),
+            }));
+            setEvents([...events, ...newEvents]);
+        } else{
+            if(selectedEvent) {
+                const updatedEvent = { ...selectedEvent, ...modalData };
+                setEvents(events.map(e => (e.id === selectedEvent.id ? updatedEvent : e)));
+
+            } else{
+                const newEvent = {
+                    id: events.length,
+                    ...modalData,
+                    start: modalData.start || new Date(),
+                    end: modalData.end || new Date(),
+                };
+                setEvents([...events, newEvent]);
+            }
         }
+        
         setModalOpen(false);
         setSelectedEvent(null);
+        setIsRecurring(false);
+        setRecurringDates([]);
     };
 
     // Delete an event
@@ -363,7 +415,21 @@ const CalendarPage = () => {
                         length={31}
                         onView={setView}
                         selectable
-                        onSelectSlot={handleAddEvent} // Enable adding new events
+                        //onSelectSlot={handleAddEvent} // Enable adding new events
+                        onSelectSlot={(slotInfo) => {
+                            if(isRecurring) {
+                                const clickedDate = slotInfo.start;
+                                setRecurringDates(prev => {
+                                    const exists = prev.find(d => d.toDateString() === clickedDate.toDateString());
+                                    return exists
+                                        ? prev.filter(d => d.toDateString() !== clickedDate.toDateString())
+                                        : [...prev, clickedDate];
+                                });
+                            } else {
+                                handleAddEvent(slotInfo);
+                            }
+                        }}
+
                         onSelectEvent={(event) => {
                             setSelectedEvent(event);
                             setView(Views.AGENDA);
@@ -426,93 +492,98 @@ const CalendarPage = () => {
                 </div>
 
                 {/* Event Edit Modal */}
-                <Modal open={modalOpen} onClose={() => setModalOpen(false)} BackdropProps={{
-                    style: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.5)'
-                    }
-                }}>
+                {modalOpen && (
                     <Box
                         sx={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            width: 400,
-                            maxHeight: '90vh',
-                            bgcolor: 'background.paper',
-                            boxShadow: 24,
-                            borderRadius: 2,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            p: 0
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: 500,
+                        maxHeight: '90vh',
+                        overflowY: 'auto',
+                        bgcolor: 'background.paper',
+                        boxShadow: 24,
+                        borderRadius: 2,
+                        zIndex: 10,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        p: 4,
                         }}
                     >
-                        {/* Scrollable content */}
-                        <Box sx={{ p: 4, overflowY: 'auto', flex: 1 }}>
-                            <h2>Add a New Event</h2>
+                        <Typography variant="h6" sx={{ mb: 2 }}>
+                        Add a New Event
+                        </Typography>
 
+                        <Button
+                        variant={isRecurring ? "contained" : "outlined"}
+                        onClick={() => setIsRecurring((prev) => !prev)}
+                        sx={{ mb: 2 }}
+                        >
+                        {isRecurring ? "Cancel Selection" : "Recurring Event"}
+                        </Button>
+
+                        {!isRecurring ? (
+                        <>
                             {["title", "location", "summary", "hostingGroup", "coordinator", "email", "phone"].map((field) => (
-                                <TextField
-                                    key={field}
-                                    fullWidth
-                                    label={field.replace(/([A-Z])/g, ' $1').trim()}
-                                    name={field}
-                                    value={modalData[field]}
-                                    onChange={handleModalChange}
-                                    margin="normal"
-                                />
+                            <TextField
+                                key={field}
+                                fullWidth
+                                label={field.replace(/([A-Z])/g, ' $1').trim()}
+                                name={field}
+                                value={modalData[field]}
+                                onChange={handleModalChange}
+                                margin="normal"
+                            />
                             ))}
 
                             <TextField
-                                fullWidth
-                                label="Event Link"
-                                name="link"
-                                value={modalData.link}
-                                onChange={handleModalChange}
-                                margin="normal"
+                            fullWidth
+                            label="Event Link"
+                            name="link"
+                            value={modalData.link}
+                            onChange={handleModalChange}
+                            margin="normal"
                             />
-
                             <TextField
-                                fullWidth
-                                label="Image URL"
-                                name="image"
-                                value={modalData.image}
-                                onChange={handleModalChange}
-                                margin="normal"
+                            fullWidth
+                            label="Image URL"
+                            name="image"
+                            value={modalData.image}
+                            onChange={handleModalChange}
+                            margin="normal"
                             />
-                        </Box>
+                        </>
+                        ) : (
+                        <Typography variant="subtitle1" color="text.secondary">
+                            Click on Calendar Dates and Weekday Headers to Select Recurring Days
+                        </Typography>
+                        )}
 
-                        {/* Footer buttons */}
-                        <Box sx={{
-                            p: 2,
-                            borderTop: '1px solid #eee',
-                            display: 'flex',
-                            justifyContent: 'space-between'
-                        }}>
-                            <Button
-                                variant="outlined"
-                                onClick={() => setModalOpen(false)}
-                                sx={{
-                                    backgroundColor: 'white',
-                                    color: theme.palette.primary.main,
-                                    borderColor: theme.palette.primary.main,
-                                    '&:hover': {
-                                        backgroundColor: '#f5f5f5',
-                                    },
-                                }}
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                onClick={handleModalSave}
-                            >
-                                Save
-                            </Button>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
+                        <Button
+                            variant="outlined"
+                            onClick={() => setModalOpen(false)}
+                            sx={{
+                            backgroundColor: 'white',
+                            color: theme.palette.primary.main,
+                            borderColor: theme.palette.primary.main,
+                            '&:hover': { backgroundColor: '#f5f5f5' },
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handleModalSave}
+                        >
+                            Save
+                        </Button>
                         </Box>
                     </Box>
-                </Modal>
+                    )}
+
             </div>
         </ThemeProvider>
     );
