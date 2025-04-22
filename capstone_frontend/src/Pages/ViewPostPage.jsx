@@ -7,11 +7,12 @@ import Upvote from '../Components/Upvote';
 import OutlinedTextarea from '../Components/TextArea';
 import { useNavigate, useParams } from 'react-router-dom';
 import UserModal from '../Components/UserModal'
-import { IconButton } from '@mui/material';
+import { IconButton, Grid } from '@mui/material';
+import PostCard from '../Components/PostCard'
 import PinIcon from '@mui/icons-material/PushPin';
 
 const ViewPostPage = () => {
-    const {theme, isModalOpen, setIsModalOpen} = useGlobalContext()
+    const {theme, isModalOpen, setIsModalOpen, cPosts, cObject, setCPosts, setCObject} = useGlobalContext()
     const [post, setPost] = useState({})
     const {_id} = useParams()
     const navigate = useNavigate()
@@ -20,6 +21,13 @@ const ViewPostPage = () => {
         const response = await fetch(`http://localhost:3001/post/${_id}`)
         const posts = await response.json()
         setPost(posts[0])
+        // console.log(posts[0])
+        if ((!cPosts || !cObject.name) && (posts[0].class || posts[0].club) ){
+            const response = await fetch(`http://localhost:3001/c/${posts[0].class ? posts[0].class : posts[0].club}`)
+            const object = await response.json()
+            setCObject(object.data)
+            setCPosts(object.posts)
+        }
     }
 
     const handlePin = async () => {
@@ -47,36 +55,34 @@ const ViewPostPage = () => {
 
     useEffect(() => {
         getPost()
-    }, [])
+    }, [_id])
+
+    useEffect(() => {
+        console.log(cPosts)
+    }, [cPosts])
 
     return (
         <div>
             <ThemeProvider theme={theme}>
             <TopBar></TopBar>
             {post?.comments ? (
-                <div class="grid grid-cols-10 gap-4 divide-x-2 divide-black ">      
-                    <div class="col-span-1">01</div>
+                <div class="grid grid-cols-11 gap-4 divide-x-2 divide-black ">      
+                    <div class="col-span-2">
+                        <div class="pt-4"><b>Similar Posts:</b></div>
+                        <hr class="h-px mb-8 bg-gray-200 border-0 dark:bg-gray-700"></hr>
+                        {cPosts.map(cPost => {
+                            return (
+                                <div>
+                                    <div class=" hover:underline" onClick={() => navigate(`/post/${cPost._id}`)}><b>{cPost.title}</b></div>
+                                    <div class="truncate">{cPost.text}</div>
+                                    <hr class="h-px my-8 bg-gray-200 border-0 dark:bg-gray-700"></hr>
+                                </div>
+                            )
+                        })}
+                    </div>
                     <div class="col-span-7 pt-2 pl-8 pr-8">
                         <div class="text-sm">{post.username}</div>
-                        <div>
-                            {post.class ? (
-                                <div style={{display: 'flex'}}> 
-                                    Class:&nbsp;
-                                    <div class="hover:underline" onClick={() => navigate(`/c/${post.class}`)}>{post.class}</div>
-                                </div>
-                            ): (
-                                <></>
-                            )
-                            }
-                            {post.club ? (
-                                <div style={{display: 'flex'}}>
-                                    Club:&nbsp; <div class="hover:underline" onClick={() => navigate(`/c/${post.club}`)}>{post.club}</div>
-                                </div>
-                            ): (
-                                <></>
-                            )
-                            }
-                        </div>
+
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div className="text-3xl"><b>{post.title}</b></div>
                                 
@@ -99,7 +105,26 @@ const ViewPostPage = () => {
                             )
                         })}
                     </div>
-                    <div class="col-span-1">03</div>
+                    <div class="col-span-2">
+                    <div>
+                            {post.class ? (
+                                <div style={{display: 'flex'}}><b>
+                                    Class:&nbsp;<div class="hover:underline" onClick={() => navigate(`/c/${post.class}`)}>{post.class}</div>
+                                    </b></div>
+                            ): (
+                                <></>
+                            )
+                            }
+                            {post.club ? (
+                                <div style={{display: 'flex'}}><b>
+                                    Club:&nbsp; <div class="hover:underline" onClick={() => navigate(`/c/${post.club}`)}>{post.club}</div>
+                                </b></div>
+                            ): (
+                                <></>
+                            )
+                            }
+                        </div>
+                    </div>
                 </div>
             ) : (
                 <div>
