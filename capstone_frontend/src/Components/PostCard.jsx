@@ -33,7 +33,6 @@ const PostCard = ({ post, hidepin}) => {
             return;
         }
         const newpost = {...post, pin: !post.pin}
-        console.log({newpost})
         const response = await fetch(`http://localhost:3001/post/${post._id}`, {
             method: "PUT",
             headers: {

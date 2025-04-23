@@ -44,18 +44,9 @@ const Upvote = ({post, setPost, commentText}) => {
       newPost.comments.filter(comment => comment.comment == commentText)[0].dislikedBy = newDislikedBy
     } else{
       newPost.votes = newVotes
-      // console.log({newLikedBy})
-      // console.log({newDislikedBy})
       newPost.likedBy = newLikedBy
       newPost.dislikedBy = newDislikedBy
-      // console.log(newPost.likedBy)
-      // console.log(newPost.dislikedBy)
     }
-    // if (!commentText){
-    //   // console.log({newLikedBy})
-    //   newPost.liked = newLikedBy
-    // }
-    // console.log(newPost)
     setPost(newPost)
     updatePost()
   }
@@ -87,12 +78,8 @@ const Upvote = ({post, setPost, commentText}) => {
       newPost.comments.filter(comment => comment.comment == commentText)[0].dislikedBy = newDislikedBy
     } else{
       newPost.votes = newVotes
-      // console.log({newLikedBy})
-      // console.log({newDislikedBy})
       newPost.likedBy = newLikedBy
-      newPost.dislikedBy = newDislikedBy
-      // console.log(newPost.likedBy)
-      // console.log(newPost.dislikedBy)
+      newPost.dislikedBy = newDislikedBys
     }
     setPost(newPost)
     updatePost()
