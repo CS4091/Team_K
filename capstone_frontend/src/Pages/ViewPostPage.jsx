@@ -13,6 +13,10 @@ import PinIcon from '@mui/icons-material/PushPin';
 
 const ViewPostPage = () => {
     const {theme, isModalOpen, setIsModalOpen, cPosts, cObject, setCPosts, setCObject} = useGlobalContext()
+    const [clubPost, setClubPosts] = useState([])
+    const [clubObject, setClubObject] = useState({})
+    const [classPosts, setClassPosts] = useState([])
+    const [classObject, setClassObject] = useState({})
     const [post, setPost] = useState({})
     const {_id} = useParams()
     const navigate = useNavigate()
@@ -21,12 +25,18 @@ const ViewPostPage = () => {
         const response = await fetch(`http://localhost:3001/post/${_id}`)
         const posts = await response.json()
         setPost(posts[0])
-        // console.log(posts[0])
         if ((!cPosts || !cObject.name) && (posts[0].class || posts[0].club) ){
-            const response = await fetch(`http://localhost:3001/c/${posts[0].class ? posts[0].class : posts[0].club}`)
-            const object = await response.json()
-            setCObject(object.data)
-            setCPosts(object.posts)
+            if (posts[0].class) {
+                const response = await (await fetch(`http://localhost:3001/c/${posts[0].class}`)).json()
+                setClassObject(response.data)
+                setClassPosts(response.posts)
+            }
+            if (posts[0].club) {
+                const response = await (await fetch(`http://localhost:3001/c/${posts[0].club}`)).json()
+                setClubObject(response.data)
+                setClubPosts(response.posts)
+            }
+
         }
     }
 
@@ -57,9 +67,6 @@ const ViewPostPage = () => {
         getPost()
     }, [_id])
 
-    useEffect(() => {
-        console.log(cObject)
-    }, [cPosts])
 
     return (
         <div>
@@ -70,15 +77,54 @@ const ViewPostPage = () => {
                     <div class="col-span-2">
                         <div class="pt-4"><b>Similar Posts:</b></div>
                         <hr class="h-px mb-8 bg-gray-200 border-0 dark:bg-gray-700"></hr>
-                        {cPosts.map(cPost => {
-                            return (
-                                <div>
-                                    <div class=" hover:underline" onClick={() => navigate(`/post/${cPost._id}`)}><b>{cPost.title}</b></div>
-                                    <div class="truncate">{cPost.text}</div>
-                                    <hr class="h-px my-8 bg-gray-200 border-0 dark:bg-gray-700"></hr>
-                                </div>
+                        {cPosts.length > 0 ? (
+                            <>
+                                {cPosts.map(cPost => {
+                                    return (
+                                        <div>
+                                            <div class=" hover:underline" onClick={() => navigate(`/post/${cPost._id}`)}><b>{cPost.title}</b></div>
+                                            <div class="truncate">{cPost.text}</div>
+                                            <hr class="h-px my-8 bg-gray-200 border-0 dark:bg-gray-700"></hr>
+                                        </div>
+                                    )
+                                })}
+                            </>
+                        ):(
+                            
+                            classPosts.length > 0 ? (
+                                <>
+                                    {classPosts.map(cPost => {
+                                        return (
+                                            <div>
+                                                <div class=" hover:underline" onClick={() => navigate(`/post/${cPost._id}`)}><b>{cPost.title}</b></div>
+                                                <div class="truncate">{cPost.text}</div>
+                                                <hr class="h-px my-8 bg-gray-200 border-0 dark:bg-gray-700"></hr>
+                                            </div>
+                                        )
+                                    })}
+                                </>
+                            ) : (
+                                <>
+                                    {clubPost.length > 0 ? (
+                                        <>
+                                        {clubPost.map(cPost => {
+                                        return (
+                                            <div>
+                                                <div class=" hover:underline" onClick={() => navigate(`/post/${cPost._id}`)}><b>{cPost.title}</b></div>
+                                                <div class="truncate">{cPost.text}</div>
+                                                <hr class="h-px my-8 bg-gray-200 border-0 dark:bg-gray-700"></hr>
+                                            </div>
+                                        )
+                                    })}
+                                        </>
+                                    ):(
+                                        <>
+                                            No Related Post found
+                                        </>
+                                    )}
+                                </>
                             )
-                        })}
+                        )}
                     </div>
                     <div class="col-span-7 pt-2 pl-8 pr-8">
                         <div class="text-sm">{post.username}</div>
@@ -106,28 +152,41 @@ const ViewPostPage = () => {
                         })}
                     </div>
                     <div class="col-span-2">
-                    <div>
-                            {post.class ? (
-                                <div >
-                                    <div class="font-bold text-lg" style={{display:'flex'}}>You are in:&nbsp;<div class="hover:underline" onClick={() => navigate(`/c/${post.class}`)}>{post.class}</div></div>
-                                    <div>Number: {cObject.number}</div>
-                                    <div>Department: {cObject.department}</div>
+                        <div>
+                            {cObject.name ? (
+                                <>
+                                    {cObject.number ? (
+                                        <div >
+                                            <div class="font-bold text-lg" style={{display:'flex'}}>You are in:&nbsp;<div class="hover:underline" onClick={() => navigate(`/c/${post.class}`)}>{post.class}</div></div>
+                                            <div>Number: {cObject.number}</div>
+                                            <div>Department: {cObject.department}</div>
 
-                                    {/* maybe do a list of other classes in same department */}
-                                </div>
-                            ): (
-                                <></>
-                            )
-                            }
-                            {post.club ? (
-                                <div class="font-bold" style={{display: 'flex'}}><b>
-                                    {/* fix this and add club announcements */}
-                                    Club:&nbsp; <div class="hover:underline" onClick={() => navigate(`/c/${post.club}`)}>{post.club}</div>
-                                </b></div>
-                            ): (
-                                <></>
-                            )
-                            }
+                                            {/* maybe do a list of other classes in same department */}
+                                        </div>
+                                        ): (
+                                        <div>
+                                            <div class="font-bold text-lg" style={{display:'flex'}}>You are in:&nbsp;<div class="hover:underline" onClick={() => navigate(`/c/${post.club}`)}>{post.club}</div></div>
+                                            <div>President: {cObject.president}</div>
+                                        </div>
+                                        )
+                                    } 
+                                </>
+                            ):(
+                                <>
+                                    {classObject.number ? (
+                                        <div >
+                                            <div class="font-bold text-lg" style={{display:'flex'}}>You are in:&nbsp;<div class="hover:underline" onClick={() => navigate(`/c/${post.class}`)}>{post.class}</div></div>
+                                            <div>Number: {classObject.number}</div>
+                                            <div>Department: {classObject.department}</div>
+                                        </div>
+                                    ):(
+                                        <div>
+                                            <div class="font-bold text-lg" style={{display:'flex'}}>You are in:&nbsp;<div class="hover:underline" onClick={() => navigate(`/c/${post.club}`)}>{post.club}</div></div>
+                                            <div>President: {clubObject.president}</div>
+                                        </div>
+                                    )}
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
