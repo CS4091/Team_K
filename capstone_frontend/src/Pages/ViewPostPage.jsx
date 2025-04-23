@@ -58,7 +58,7 @@ const ViewPostPage = () => {
     }, [_id])
 
     useEffect(() => {
-        console.log(cPosts)
+        console.log(cObject)
     }, [cPosts])
 
     return (
@@ -108,15 +108,20 @@ const ViewPostPage = () => {
                     <div class="col-span-2">
                     <div>
                             {post.class ? (
-                                <div style={{display: 'flex'}}><b>
-                                    Class:&nbsp;<div class="hover:underline" onClick={() => navigate(`/c/${post.class}`)}>{post.class}</div>
-                                    </b></div>
+                                <div >
+                                    <div class="font-bold text-lg" style={{display:'flex'}}>You are in:&nbsp;<div class="hover:underline" onClick={() => navigate(`/c/${post.class}`)}>{post.class}</div></div>
+                                    <div>Number: {cObject.number}</div>
+                                    <div>Department: {cObject.department}</div>
+
+                                    {/* maybe do a list of other classes in same department */}
+                                </div>
                             ): (
                                 <></>
                             )
                             }
                             {post.club ? (
-                                <div style={{display: 'flex'}}><b>
+                                <div class="font-bold" style={{display: 'flex'}}><b>
+                                    {/* fix this and add club announcements */}
                                     Club:&nbsp; <div class="hover:underline" onClick={() => navigate(`/c/${post.club}`)}>{post.club}</div>
                                 </b></div>
                             ): (
