@@ -517,3 +517,33 @@ app.get('/c/:cName', async (req, res) => {
 app.listen(port, () => {
   console.log(`App running on port ${port}.`)
 })
+
+app.put('/c/:cName/announcement', async (req, res) => {
+  try {
+    const { announcement } = req.body;
+    const cName = req.params.cName;
+    const clubsCollection = client.db('capstone-website').collection('clubs');
+    const classesCollection = client.db('capstone-website').collection('classes');
+
+    let result = await clubsCollection.updateOne(
+      { name: { $regex: new RegExp(`^${cName}$`, 'i') } },
+      { $set: { announcement } }
+    );
+
+    if (result.matchedCount === 0) {
+      result = await classesCollection.updateOne(
+        { name: { $regex: new RegExp(`^${cName}$`, 'i') } },
+        { $set: { announcement } }
+      );
+    }
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: 'the abyss cannot hold the announcement' });
+    }
+
+    return res.status(200).json({ message: 'announcement has been contained successfuly' });
+  } catch (error) {
+    console.error('error:', error);
+    res.status(500).send('error');
+  }
+})

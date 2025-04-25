@@ -79,7 +79,7 @@ const LandingPage = () => {
                         <Grid container spacing={3}>
                             {recentPosts.map((post, index) => (
                                 <Grid item xs={12} sm={6} md={4} key={index} sx={{ display: 'flex', flexDirection: 'column', marginBottom: '1rem' }}>
-                                    <PostCard post={post} hidepin={true} />
+                                    <PostCard post={post} hidepin={true} minimal={true} />
                                 </Grid>
                             ))}
                         </Grid>
@@ -87,7 +87,7 @@ const LandingPage = () => {
                         <Box>
                             {recentPosts.map((post, index) => (
                                 <Box key={index} sx={{ display: 'flex', flexDirection: 'column', marginBottom: '1rem', border: '2px solid #ddd', borderRadius: '8px', padding: '10px' }}>
-                                    <PostCard post={post} hidepin={true} />
+                                    <PostCard post={post} hidepin={true} minimal = {true}/>
                                 </Box>
                             ))}
                         </Box>
