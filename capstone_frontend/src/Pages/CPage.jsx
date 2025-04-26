@@ -4,22 +4,33 @@ import TopBar from '../Components/TopBar'
 import UserModal from '../Components/UserModal'
 import { useGlobalContext } from '../Context/GlobalContext'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Box, Grid, Typography, TextField, Button} from '@mui/material'
+import { Box, Grid, Typography, TextField, Button, IconButton} from '@mui/material'
+import SettingsIcon from '@mui/icons-material/Settings'
 import PostCard from '../Components/PostCard'
+import SettingsModal from '../Components/SettingsModal'
 
 const CPage = () => {
-    const {theme, isModalOpen, setIsModalOpen, searched, setSearched, cPosts, cObject, setCPosts, setCObject} = useGlobalContext()
+    const {theme, isModalOpen, setIsModalOpen, searched, setSearched, cPosts, cObject, setCPosts, setCObject, user} = useGlobalContext()
     const {cName} = useParams()
     const [loaded, setLoaded] = useState(false)
     const [announcement, setAnnouncement] = useState('')
     const [isEditing, setIsEditing] = useState(false)
     const [isSnackOpen, setIsSnackOpen] = useState(false)  // Added state for Snackbar
     const [snackMessage, setSnackMessage] = useState('')
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+
+
+    const canEditClub = cObject && user && (
+        user.username === cObject.president ||
+        user.username === cObject.creator ||
+        (cObject.importantPeople?.some(p => p.username === user.username))
+    )
 
     const getClub = async () => {
         const response = await fetch(`http://localhost:3001/c/${cName}`)
         const object = await response.json()
         setCObject(object.data)
+        console.log(object.data)
         setLoaded(true)
         setCPosts(object.posts)
         setSearched(true)
@@ -46,10 +57,18 @@ const CPage = () => {
                 <TopBar/>
                 {cObject.name ? (
                     <div>
-                        <Box className="rounded-lg p-6 mb-6 text-center">
+                        <Box className="rounded-lg p-6 mb-6 text-center relative">
                             <Typography variant='h4' gutterBottom>{cObject.name}</Typography>
+                            {canEditClub && (
+                                <IconButton 
+                                    onClick={() => setIsSettingsOpen(true)} 
+                                    sx={{ position: 'absolute', top: 10, right: 10 }}
+                                >
+                                    <SettingsIcon />
+                                </IconButton>
+                            )}
                             {cObject.president ? (
-                                <Typography variant='subtitle1'>President: {cObject.president?.username}</Typography>
+                                <Typography variant='subtitle1'>President: {cObject.president}</Typography>
                             ) : (
                                 <Typography variant='subtitle1'>{cObject.department} - {cObject.number}</Typography>
                             )}
@@ -69,6 +88,7 @@ const CPage = () => {
                     <>Loading...</>
                 )} 
                 <UserModal isOpen={isModalOpen} setIsOpen={setIsModalOpen}/>
+                <SettingsModal isOpen={isSettingsOpen} setIsOpen={setIsSettingsOpen} />
             </ThemeProvider>
         </div>
     )

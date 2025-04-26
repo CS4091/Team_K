@@ -624,3 +624,52 @@ app.delete("/event/:id", async (req, res) => {
 app.listen(port, () => {
   console.log(`App running on port ${port}.`)
 })
+
+app.get("/users/getAll", async (req, res) => {
+  try {
+    const collection = client.db('capstone-website').collection('users')
+    const users = await collection.find({}, {
+      projection: { _id: 1, username: 1, email: 1 }
+    }).toArray()
+
+    res.status(200).json(users)
+  } catch (error) {
+    console.error("Error fetching users:", error)
+    res.status(500).send("Error fetching users")
+  }
+})
+
+app.put("/c/:clubID/update", async (req, res) => {
+  try {
+    const clubId = req.params.clubID
+    const { president, newImportantPeople = [] } = req.body
+
+    const collection = client.db('capstone-website').collection('clubs')
+
+    const update = {}
+
+    if (president) {
+      update.$set = { president }
+    }
+
+    if (newImportantPeople.length > 0) {
+      update.$addToSet = {
+        importantPeople: { $each: newImportantPeople }
+      }
+    }
+
+    if (!update.$set && !update.$addToSet) {
+      return res.status(400).send("No valid update fields provided")
+    }
+
+    const result = await collection.findOneAndUpdate(
+      { _id: new ObjectId(clubId) },
+      update,
+      { returnDocument: 'after' }
+    )
+    res.status(200).json({ updatedClub: result })
+  } catch (error) {
+    console.error("Error updating club:", error)
+    res.status(500).send("Error updating club")
+  }
+})
