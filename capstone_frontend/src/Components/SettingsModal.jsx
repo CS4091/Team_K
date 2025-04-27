@@ -8,37 +8,38 @@ const SettingsModal = ({isOpen, setIsOpen}) => {
     //TODO: ACTUALLY ADD PERMISSIONS TO CALENDAR AN STUFF
     const {user, cObject, setCObject} = useGlobalContext()
     const [allUsers, setAllUsers] = useState([])
-    const [newPresident, setNewPresident] = useState(null)
+    const [newPresident, setNewPresident] = useState({})
     const [newImportantPeople, setNewImportantPeople] = useState([])
 
-    const canChangePresident = user?.username === cObject?.president || user?.username === cObject?.creator
+    const canChangePresident = user?.username === cObject?.president?.username || user?.username === cObject?.creator
 
     const getAllUsers = async () => {
         const response = await fetch(`http://localhost:3001/users/getAll`)
         const doc = await response.json()
-        // console.log(doc)
         setAllUsers(doc)
     }
 
     useEffect(() => {
         if (isOpen) {
             getAllUsers()
-            setNewPresident(cObject?.president || null)
+            setNewPresident(cObject?.president.username || null)
             setNewImportantPeople(cObject?.importantPeople || [])
         }
     }, [isOpen])
 
     const handleSave = async () => {
-        const currentIds = cObject.importantPeople?.map(p => p._id) || []
-        const newAdditions = newImportantPeople.filter(p => !currentIds.includes(p._id))
+        // const currentIds = cObject.importantPeople?.map(p => p._id) || []
+        // const newAdditions = newImportantPeople.filter(p => !currentIds.includes(p._id))
 
+        // const body = {
+        //     ...(canChangePresident && { president: newPresident.username }),
+        //     newImportantPeople: newAdditions
+        // }
         const body = {
-            ...(canChangePresident && { president: newPresident.username }),
-            newImportantPeople: newAdditions
-        }
-
-        console.log(cObject)
-
+            newPresident,  // full object: { _id, username, email }
+            newImportantPeople  // array of full user objects
+          }
+          
         try {
             const res = await fetch(`http://localhost:3001/c/${cObject._id}/update`, {
                 method: 'PUT',
@@ -48,7 +49,6 @@ const SettingsModal = ({isOpen, setIsOpen}) => {
     
             if (res.ok) {
                 const data = await res.json()
-                // console.log(data)
                 setCObject(data.updatedClub)
                 setIsOpen(false)
             } else {
@@ -68,7 +68,7 @@ const SettingsModal = ({isOpen, setIsOpen}) => {
                    {canChangePresident && 
                         <Autocomplete
                             options={allUsers}
-                            getOptionLabel={(option) => option.username || ''}
+                            getOptionLabel={(option) => option.username || cObject.president?.username || ""}
                             value={newPresident}
                             onChange={(e, value) => setNewPresident(value)}
                             renderInput={(params) => <TextField {...params} label="President" />}

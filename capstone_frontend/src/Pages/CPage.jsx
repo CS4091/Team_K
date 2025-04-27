@@ -18,19 +18,12 @@ const CPage = () => {
     const [isSnackOpen, setIsSnackOpen] = useState(false)  // Added state for Snackbar
     const [snackMessage, setSnackMessage] = useState('')
     const [isSettingsOpen, setIsSettingsOpen] = useState(false)
-
-
-    const canEditClub = cObject && user && (
-        user.username === cObject.president ||
-        user.username === cObject.creator ||
-        (cObject.importantPeople?.some(p => p.username === user.username))
-    )
+    const [canEditClub, setCanEditClub] = useState(false)
 
     const getClub = async () => {
         const response = await fetch(`http://localhost:3001/c/${cName}`)
         const object = await response.json()
         setCObject(object.data)
-        console.log(object.data)
         setLoaded(true)
         setCPosts(object.posts)
         setSearched(true)
@@ -50,7 +43,18 @@ const CPage = () => {
                 )
             }
         }, [cPosts])
+    
+    useEffect(() => {
+        if (cObject.name) {
+            if ( user.username === cObject.president.username ||
+                user.username === cObject.creator ||
+                (cObject.importantPeople?.some(p => p.username === user.username))){
+                    setCanEditClub(true)
+                }
+        }
+    }, [cObject])
 
+    
     return (
         <div>
             <ThemeProvider theme={theme}>
@@ -58,7 +62,7 @@ const CPage = () => {
                 {cObject.name ? (
                     <div>
                         <Box className="rounded-lg p-6 mb-6 text-center relative">
-                            <Typography variant='h4' gutterBottom>{cObject.name}</Typography>
+                            <Typography variant='h4' gutterBottom>{cObject?.name}</Typography>
                             {canEditClub && (
                                 <IconButton 
                                     onClick={() => setIsSettingsOpen(true)} 
@@ -68,7 +72,7 @@ const CPage = () => {
                                 </IconButton>
                             )}
                             {cObject.president ? (
-                                <Typography variant='subtitle1'>President: {cObject.president}</Typography>
+                                <Typography variant='subtitle1'>President: {cObject.president.username}</Typography>
                             ) : (
                                 <Typography variant='subtitle1'>{cObject.department} - {cObject.number}</Typography>
                             )}
@@ -78,7 +82,7 @@ const CPage = () => {
                             {cPosts.map((post, index) => {
                                 return (
                                     <Grid item xs={12} key={index}>
-                                        <PostCard post={post}/>
+                                        <PostCard post={post} hidepin={!canEditClub}/>
                                     </Grid>
                                 )
                             })}

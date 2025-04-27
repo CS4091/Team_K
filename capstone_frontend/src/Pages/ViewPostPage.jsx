@@ -12,12 +12,13 @@ import PostCard from '../Components/PostCard'
 import PinIcon from '@mui/icons-material/PushPin';
 
 const ViewPostPage = () => {
-    const {theme, isModalOpen, setIsModalOpen, cPosts, cObject, setCPosts, setCObject} = useGlobalContext()
+    const {theme, isModalOpen, setIsModalOpen, cPosts, cObject, setCPosts, setCObject, user} = useGlobalContext()
     const [clubPost, setClubPosts] = useState([])
     const [clubObject, setClubObject] = useState({})
     const [classPosts, setClassPosts] = useState([])
     const [classObject, setClassObject] = useState({})
     const [post, setPost] = useState({})
+    const [canSeePin, setCanSeePin] = useState(false)
     const {_id} = useParams()
     const navigate = useNavigate()
 
@@ -67,6 +68,15 @@ const ViewPostPage = () => {
         getPost()
     }, [_id])
 
+   useEffect(() => {
+        if(user.username) {
+            if (cObject?.president?.username == user.username || cObject?.creator == user.username || (cObject?.importantPeople?.some(p => p.username === user.username))){
+                setCanSeePin(true)
+            } else if (clubObject?.president?.username == user.username || clubObject?.creator == user.username || (clubObject?.importantPeople?.some(p => p.username === user.username))){
+                setCanSeePin(true)
+            }
+        }
+   }, [cObject, clubObject, user.username])
 
     return (
         <div>
@@ -131,10 +141,11 @@ const ViewPostPage = () => {
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div className="text-3xl"><b>{post.title}</b></div>
-                                
+                            {canSeePin &&
                                 <IconButton onClick={handlePin} aria-label="pin">
                                     <PinIcon color={post.pin ? "error" : "action"} />
                                 </IconButton>
+                            }
                         </div>
                         <div class="pt-4 ">{post.text}</div>
                         <div class="pt-8 "><Upvote post={post} setPost={setPost} commentText={""}/></div>
@@ -166,7 +177,7 @@ const ViewPostPage = () => {
                                         ): (
                                         <div>
                                             <div class="font-bold text-lg" style={{display:'flex'}}>You are in:&nbsp;<div class="hover:underline" onClick={() => navigate(`/c/${post.club}`)}>{post.club}</div></div>
-                                            <div>President: {cObject.president}</div>
+                                            <div>President: {cObject.president?.username}</div>
                                         </div>
                                         )
                                     } 
@@ -182,7 +193,7 @@ const ViewPostPage = () => {
                                     ):(
                                         <div>
                                             <div class="font-bold text-lg" style={{display:'flex'}}>You are in:&nbsp;<div class="hover:underline" onClick={() => navigate(`/c/${post.club}`)}>{post.club}</div></div>
-                                            <div>President: {clubObject.president}</div>
+                                            <div>President: {clubObject.president?.username}</div>
                                         </div>
                                     )}
                                 </>
