@@ -1,31 +1,54 @@
-import React, {useState} from 'react'
-import { Typography, Box, Card, CardContent, Grid, IconButton, CardHeader } from '@mui/material'
+import React, { useState } from 'react'
+import { Typography, Box, Card, CardContent, Grid, IconButton, CardHeader, Snackbar } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
+import PinIcon from '@mui/icons-material/PushPin'
 import { useNavigate } from 'react-router-dom'
 import { useGlobalContext } from '../Context/GlobalContext'
-import { Snackbar } from '@mui/material'
 
-const PostCard = ({post}) => {
+const PostCard = ({ post, hidepin}) => {
     const navigate = useNavigate()
-    const {user, setIsSnackOpen, setSnackMessage} = useGlobalContext()
-    
+    const { user, setIsSnackOpen, setSnackMessage } = useGlobalContext()
 
     const handleDelete = async () => {
-        const response =  await fetch(`http://localhost:3001/post/${post._id}`, {
+        await fetch(`http://localhost:3001/post/${post._id}`, {
             method: "DELETE",
             headers: {
-              "Content-Type": "application/json",
+                "Content-Type": "application/json",
             },
             body: JSON.stringify(post),
-          });
+        });
         const doc = await response.json()
-        if (doc.message == 'Post deleted successfully'){
+        if (doc.message === 'Post deleted successfully') {
             setIsSnackOpen(true)
             setSnackMessage('Post deleted successfully, you may have to refresh to see it filtered out')
         }
     }
-    
+
+    const handlePin = async () => {
+        // check if user is logged in
+        if (!user.username) {
+            setIsSnackOpen(true);
+            setSnackMessage('You must be logged in to pin a post!');
+            return;
+        }
+        const newpost = {...post, pin: !post.pin}
+        const response = await fetch(`http://localhost:3001/post/${post._id}`, {
+            method: "PUT",
+            headers: {
+            "Content-Type": "application/json",
+            },
+            body: JSON.stringify(newpost),
+        });
+        post = newpost
+        
+        const doc = await response.json()
+        if (doc.message === 'Post pinned successfully' || doc.message === 'Post unpinned successfully') {
+            setIsSnackOpen(true)
+            setSnackMessage(doc.message)
+        }
+    }
+
     return (
         <div>
             <Card
@@ -35,7 +58,6 @@ const PostCard = ({post}) => {
                     flexDirection: 'column',
                 }}
             >
-                
                 <CardContent>
                     <Typography variant='h6'>{post.title}</Typography>
                     <Typography variant='caption' color='textSecondary' gutterBottom>{post.username}</Typography>
@@ -52,14 +74,24 @@ const PostCard = ({post}) => {
                             <Typography variant='body-2'>Upvotes: {post.votes}</Typography>
                             <Typography variant='body-2'>Comments: {post?.comments?.length}</Typography>
                         </Box>
-                        <Box>
-                            <IconButton sx={{alignItems:'right'}} onClick={() => navigate(`/post/${post._id}`)}>
-                                <ArrowForwardIcon/>
+                        <Box sx={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                            {/* hiding button */}
+                            {!hidepin && user?.username && (
+                                <IconButton
+                                    onClick={handlePin}
+                                    aria-label="pin"
+                                >
+                                    <PinIcon color={post.pin ? "error" : "action"} /> 
+                                </IconButton>
+                            )}
+                            {/* Navigate Button */}
+                            <IconButton sx={{ alignItems: 'right' }} onClick={() => navigate(`/post/${post._id}`)}>
+                                <ArrowForwardIcon />
                             </IconButton>
-                            {user.username == post.username && (
+                            {user.username === post.username && (
                                 <IconButton
                                     sx={{
-                                        alignItems:'right'
+                                        alignItems: 'right'
                                     }}
                                     onClick={() => handleDelete()}
                                     aria-label="delete"

@@ -46,10 +46,11 @@ const TopBar = () => {
     const handleClick = (event) => {
         setAnchorEl(event.currentTarget);
       };
+
       const handleClose = () => {
         setAnchorEl(null);
-      };
-
+    };
+    
     return (
         <Box sx={{ flexGrow: 1 }}>
             <AppBar position="static">
@@ -121,7 +122,6 @@ const TopBar = () => {
                                     <Person/>
                                 </IconButton>
                             </Tooltip>
-
                         </div>
                     </div>
                 </Typography>

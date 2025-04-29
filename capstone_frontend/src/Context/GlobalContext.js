@@ -4,39 +4,38 @@ import { useCookies } from 'react-cookie';
 
 const GlobalContext = createContext();
 
-export const GlobalProvider = ({ children }) => {
-  const [theme, setTheme] = useState(createTheme({
-    palette: {
-      primary: {
-        main: '#154734',
-        contrastText: '#FFFFFF',
-      },
-      secondary: {
-        main: '#007A33',
-        contrastText: '#FFFFFF',
-      },
-      background: {
-        paper: '#FFFFFF',
-        default: '#F5F5F5',
-      },
-      text: {
-        primary: '#000000',
-        secondary: '#666666',
-      },
-    },
-  }));
-
-  const [user, setUser] = useState({});
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [allClasses, setAllClasses] = useState([]);
-  const [allClubs, setAllClubs] = useState([]);
-  const [searched, setSearched] = useState(false);
-  const [isSnackOpen, setIsSnackOpen] = useState(false);
-  const [snackMessage, setSnackMessage] = useState("");
-  const [cPosts, setCPosts] = useState([]);
-  const [cObject, setCObject] = useState({});
-  const [allC, setAllC] = useState([]);
-  const [cookies, setCookie, removeCookie] = useCookies(['user']);
+export const GlobalProvider = ({children}) => {
+    const [theme, setTheme] = useState(createTheme({
+        palette: {
+          primary: {
+            main: '#154734',
+            contrastText: '#FFFFFF',
+          },
+          secondary: {
+            main: '#007A33',
+            contrastText: '#FFFFFF',
+          },
+          background: {
+            paper: '#FFFFFF', // Light background for inputs and cards
+            default: '#F5F5F5',
+          },
+          text: {
+            primary: '#000000', // Black text on light backgrounds
+            secondary: '#666666',
+          },
+        },
+      }))
+    const [user, setUser] = useState({})
+    const [isModalOpen, setIsModalOpen] = useState(false)
+    const [allClasses, setAllClasses] = useState([])
+    const [allClubs, setAllClubs] = useState([])
+    const [searched, setSearched] = useState(false)
+    const [isSnackOpen, setIsSnackOpen] = useState(false)
+    const [snackMessage, setSnackMessage] = useState("")
+    const [cPosts, setCPosts] = useState([])
+    const [cObject, setCObject] = useState({})
+    const [allC, setAllC] = useState([])
+    const [cookies, setCookie, removeCookie] = useCookies(['user'])
 
   const [suppressPinPrompt, setSuppressPinPrompt] = useState(false);
   const [pendingEventData, setPendingEventData] = useState(null);

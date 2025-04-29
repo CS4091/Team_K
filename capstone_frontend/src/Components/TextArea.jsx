@@ -9,13 +9,15 @@ const OutlinedTextarea = ({post, setPost}) => {
 
 
     const updatePost = async () => {
-        await fetch(`http://localhost:3001/post/${post._id}`, {
+        const result = await fetch(`http://localhost:3001/post/${post._id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(post),
         });
+        const updatedPost = await result.json()
+        setPost(updatedPost.post)
     }
     
     const handleFocus = () => setIsFocused(true);
@@ -32,12 +34,13 @@ const OutlinedTextarea = ({post, setPost}) => {
         const newComment = {
             comment: text,
             username: user.username,
-            votes: 0
+            votes: 0,
+            likedBy: [],
+            dislikedBy: []
         }
         const newPost = post
         newPost.comments = [newComment, ...newPost.comments]
         updatePost()
-        setPost(newPost)
         setText("")
         setIsFocused(false)
     }
