@@ -31,7 +31,7 @@ const CPage = () => {
     useEffect(() => {
             if (searched == false && cPosts.length == 0) {
                 getClub()
-            }else { //sorting based on if pinned
+            }else { 
                 setCPosts(prevPosts => 
                     [...prevPosts].sort((a, b) => {
                         return b.pin - a.pin;
