@@ -6,9 +6,12 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const sendEmail = require("./email")
 
+const cors = require("cors");
+app.use(cors());
+
 app.use(express.json())
 app.use(function (req, res, next) {
-    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
+    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173', 'http://localhost:5173/map');
     res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Access-Control-Allow-Headers');
     next();
@@ -687,4 +690,34 @@ app.delete("/event/:id", async (req, res) => {
 
 app.listen(port, () => {
   console.log(`App running on port ${port}.`)
+})
+
+app.put('/c/:cName/announcement', async (req, res) => {
+  try {
+    const { announcement } = req.body;
+    const cName = req.params.cName;
+    const clubsCollection = client.db('capstone-website').collection('clubs');
+    const classesCollection = client.db('capstone-website').collection('classes');
+
+    let result = await clubsCollection.updateOne(
+      { name: { $regex: new RegExp(`^${cName}$`, 'i') } },
+      { $set: { announcement } }
+    );
+
+    if (result.matchedCount === 0) {
+      result = await classesCollection.updateOne(
+        { name: { $regex: new RegExp(`^${cName}$`, 'i') } },
+        { $set: { announcement } }
+      );
+    }
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: 'the abyss cannot hold the announcement' });
+    }
+
+    return res.status(200).json({ message: 'announcement has been contained successfuly' });
+  } catch (error) {
+    console.error('error:', error);
+    res.status(500).send('error');
+  }
 })
