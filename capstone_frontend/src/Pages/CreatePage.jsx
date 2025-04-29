@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react'
 import { useGlobalContext } from '../Context/GlobalContext'
 import { ThemeProvider } from '@emotion/react'
 import TopBar from '../Components/TopBar'
-import { OutlinedInput, TextareaAutosize, Box, Button, Select, MenuItem, FormControl, Snackbar } from '@mui/material'
+import { OutlinedInput, TextareaAutosize, Box, Button, Select, MenuItem, FormControl, Snackbar, CircularProgress } from '@mui/material'
 import UserModal from '../Components/UserModal'
+import { useNavigate } from 'react-router-dom'
 
 
 export const CreatePage = () => {
@@ -14,8 +15,11 @@ export const CreatePage = () => {
     const [club, setClub] = useState("")
     const [isSnackOpen, setIsSnackOpen] = useState(false)
     const [snackMessage, setSnackMessage] = useState("")
+    const [loading, setLoading] = useState(false)
+    const navigate = useNavigate()
 
     const handleSubmit = async () => {
+        setLoading(true)
         const newPost = {
             username: user.username,
             title: title,
@@ -39,6 +43,8 @@ export const CreatePage = () => {
         setSnackMessage('Post created successfully')
         setIsSnackOpen(true)
         const result = await response.json();
+        setLoading(false)
+        navigate(`/post/${result.postId}`)
     }
 
     useEffect(() => {
@@ -53,7 +59,19 @@ export const CreatePage = () => {
         <div>
             <ThemeProvider theme={theme}>
                 <TopBar></TopBar>
-                <div style={{padding:'2%'}}>
+                {loading ? (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            height: '80vh', // or whatever height feels good
+                        }}
+                    >
+                        <CircularProgress />
+                    </Box>
+                ): (
+                    <div style={{padding:'2%'}}>
                     <FormControl fullWidth>
                         <h1 className="text-3xl font-bold mt-1">Create Post</h1>
                         <h3 className="text-xl mt-8">Title</h3>
@@ -109,6 +127,8 @@ export const CreatePage = () => {
                             <Button variant="contained" disabled={(!user.username || !text || !title || !user.verified)} sx={{ ml : 1 }} onClick={() => handleSubmit()}>Submit</Button>
                         </Box>
                     </div>
+                )}
+                
                 <UserModal isOpen={isModalOpen} setIsOpen={setIsModalOpen}/>
                 <Snackbar open={isSnackOpen} autoHideDuration={3000} onClose={() => setIsSnackOpen(false)} anchorOrigin={{vertical: 'bottom', horizontal: 'center'}} message={snackMessage}/>
             </ThemeProvider>

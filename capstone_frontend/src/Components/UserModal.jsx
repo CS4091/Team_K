@@ -4,7 +4,7 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import React, { useEffect, useState } from 'react'
 import { useGlobalContext } from '../Context/GlobalContext';
-// import axios from 'axios';
+import CircularProgress from '@mui/material/CircularProgress';
 import { Snackbar } from '@mui/material'
 import { useCookies } from 'react-cookie';
 
@@ -29,8 +29,10 @@ const UserModal = ({isOpen, setIsOpen}) => {
     const [snackMessage, setSnackMessage] = useState("")
     const [create, setCreate] = useState(false)
     const [checked, setChecked] = useState(false)
+    const [loading, setLoading] = useState(false)
     
     const handleSignIn = async () => {
+        setLoading(true)
         const response = await fetch("http://localhost:3001/user/login", {
             method: "POST",
             headers: {
@@ -68,10 +70,12 @@ const UserModal = ({isOpen, setIsOpen}) => {
             setSnackMessage("Error logging in")
             setIsSnackOpen(true)
         }
+        setLoading(false)
     }
 
 
     const handleCreate = async () => {
+        setLoading(true)
         const response = await fetch("http://localhost:3001/user/register", {
             method: "POST",
             headers: {
@@ -104,53 +108,61 @@ const UserModal = ({isOpen, setIsOpen}) => {
             setSnackMessage("Error creating account")
             setIsSnackOpen(true)
         }   
+        setLoading(false)
     }
     
     return (
         <div>
             <Modal open={isOpen} onClose={() => setIsOpen(false)}>
                 <Box sx={style}>
-                    {create ? (
-                        <div>
-                            <Typography id="modal-modal-title" variant="h4" component="h2">
-                                Create Account
-                            </Typography>
-                            <h3>Username:</h3>
-                            <input type="text" style={{'outline':'1px solid black'}} value={tempName} onChange={e => setTempName(e.target.value)} variant='outlined'/>
-                            <h3>Email:</h3>
-                            <input type="text" style={{'outline':'1px solid black'}} value={tempEmail} onChange={e => setTempEmail(e.target.value)} variant='outlined'/>
-                            <h3>Password:</h3>
-                            <input type="password" style={{'outline':'1px solid black'}} value={tempPass} onChange={e => setTempPass(e.target.value)} variant='outlined'/>
-                            <div style={{marginTop:'1rem'}}>
-                                <label>
-                                    Stay signed in? <input type="checkbox" checked={checked} onChange={() => setChecked(!checked)}></input>
-                                </label>
-                            </div>
-                            <div style={{paddingTop: '1rem', display:'flex', justifyContent:'center'}}>
-                                <Button style={{marginRight:'1rem'}} variant='outlined' onClick={() => setCreate(false)}>Sign in</Button>
-                                <Button variant='contained' onClick={() => handleCreate()} disabled={!tempEmail || !tempName || !tempPass}>Create Account</Button>
-                            </div>
-                        </div>
-                    ):(
-                        <div>
-                            <Typography id="modal-modal-title" variant="h4" component="h2">
-                                Sign in
-                            </Typography>
-                            <h3>Username or Email:</h3>
-                            <input type="text" style={{'outline':'1px solid black'}} value={tempName} onChange={e => setTempName(e.target.value)} variant='outlined'/>
-                            <h3>Password:</h3>
-                            <input type="password" style={{'outline':'1px solid black'}} value={tempPass} onChange={e => setTempPass(e.target.value)} variant='outlined'/>
-                            <div style={{marginTop:'1rem'}}>
-                                <label>
-                                    Stay signed in? <input type="checkbox" checked={checked} onChange={() => setChecked(!checked)}></input>
-                                </label>
-                            </div>
-                            <div style={{paddingTop: '1rem', display:'flex', justifyContent:'center'}}>
-                                <Button style={{marginRight:'1rem'}} variant='contained' onClick={() => handleSignIn()}>Sign in</Button>
-                                <Button variant='outlined' onClick={() => setCreate(true)}>Create Account</Button>
-                            </div>
-                        </div>
+                    {loading ? (
+                        <CircularProgress></CircularProgress>
+                    ) : (
+                        <>
+                            {create ? (
+                                <div>
+                                    <Typography id="modal-modal-title" variant="h4" component="h2">
+                                        Create Account
+                                    </Typography>
+                                    <h3>Username:</h3>
+                                    <input type="text" style={{'outline':'1px solid black'}} value={tempName} onChange={e => setTempName(e.target.value)} variant='outlined'/>
+                                    <h3>Email:</h3>
+                                    <input type="text" style={{'outline':'1px solid black'}} value={tempEmail} onChange={e => setTempEmail(e.target.value)} variant='outlined'/>
+                                    <h3>Password:</h3>
+                                    <input type="password" style={{'outline':'1px solid black'}} value={tempPass} onChange={e => setTempPass(e.target.value)} variant='outlined'/>
+                                    <div style={{marginTop:'1rem'}}>
+                                        <label>
+                                            Stay signed in? <input type="checkbox" checked={checked} onChange={() => setChecked(!checked)}></input>
+                                        </label>
+                                    </div>
+                                    <div style={{paddingTop: '1rem', display:'flex', justifyContent:'center'}}>
+                                        <Button style={{marginRight:'1rem'}} variant='outlined' onClick={() => setCreate(false)}>Sign in</Button>
+                                        <Button variant='contained' onClick={() => handleCreate()} disabled={!tempEmail || !tempName || !tempPass}>Create Account</Button>
+                                    </div>
+                                </div>
+                            ):(
+                                <div>
+                                    <Typography id="modal-modal-title" variant="h4" component="h2">
+                                        Sign in
+                                    </Typography>
+                                    <h3>Username or Email:</h3>
+                                    <input type="text" style={{'outline':'1px solid black'}} value={tempName} onChange={e => setTempName(e.target.value)} variant='outlined'/>
+                                    <h3>Password:</h3>
+                                    <input type="password" style={{'outline':'1px solid black'}} value={tempPass} onChange={e => setTempPass(e.target.value)} variant='outlined'/>
+                                    <div style={{marginTop:'1rem'}}>
+                                        <label>
+                                            Stay signed in? <input type="checkbox" checked={checked} onChange={() => setChecked(!checked)}></input>
+                                        </label>
+                                    </div>
+                                    <div style={{paddingTop: '1rem', display:'flex', justifyContent:'center'}}>
+                                        <Button style={{marginRight:'1rem'}} variant='contained' onClick={() => handleSignIn()}>Sign in</Button>
+                                        <Button variant='outlined' onClick={() => setCreate(true)}>Create Account</Button>
+                                    </div>
+                                </div>
+                            )}
+                        </>
                     )}
+                    
                 </Box>
             </Modal>
             <Snackbar open={isSnackOpen} autoHideDuration={3000} onClose={() => setIsSnackOpen(false)} anchorOrigin={{vertical: 'bottom', horizontal: 'center'}} message={snackMessage}/>
