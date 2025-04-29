@@ -284,7 +284,6 @@ useEffect(() => {
       const handleDeleteEvent = async (event) => {
         const confirmDelete = window.confirm(`Are you sure you want to delete "${event.title}"?`)
         if (!confirmDelete) return
-      
         try {
           await fetch(`http://localhost:3001/event/${event._id}`, { method: "DELETE" })
           setEvents(events.filter(e => e._id !== event._id))

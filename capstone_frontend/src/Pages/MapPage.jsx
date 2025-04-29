@@ -25,21 +25,24 @@ const MapPage = () => {
   ];
 
   const getAllPins = async () => {
+    setArePinsLoaded(false)
     const response = await fetch(`http://localhost:3001/event/getAll`)
     const doc = await response.json()
     const newPins = doc.map(p => {
-      console.log({p})
+      // console.log({p})
       if (p.latlng?.lng) {
         const newMarker = L.marker(p.latlng).addTo(map)
-        .bindPopup(`<b>${p?.name}</b><br>Lat: ${p.latlng.lat.toFixed(5)}<br>Lng: ${p.latlng.lng.toFixed(5)}`)
-        .openPopup();
+          .bindPopup(`<b>${p?.name}</b><br>Lat: ${p.latlng.lat.toFixed(5)}<br>Lng: ${p.latlng.lng.toFixed(5)}`)
+          .openPopup();
+          // return { id: Date.now() + Math.random(), name: location.name, latlng: { lat: location.lat, lng: location.lng }, marker };
         const newP = {...p, marker: newMarker}
         return newP
       }
       
     })
-    filteredPins = newPins.filter(pin => pin.pinId)
-    setPins(newPins)
+    const filteredPins = newPins.filter(pin => pin?.pinId)
+    setPins(filteredPins)
+    setArePinsLoaded(false)
   }
 
   useEffect(() => {
@@ -59,17 +62,6 @@ const MapPage = () => {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(newMap);
-
-    const initialPins = hardcodedAddresses.map((location) => {
-      const marker = L.marker([location.lat, location.lng]).addTo(newMap)
-        .bindPopup(`<b>${location.name}</b><br>Lat: ${location.lat.toFixed(5)}<br>Lng: ${location.lng.toFixed(5)}`)
-        .openPopup();
-    
-      return { id: Date.now() + Math.random(), name: location.name, latlng: { lat: location.lat, lng: location.lng }, marker };
-    });
-    
-    setPins(initialPins);
-    
 
     setMap(newMap);
     
@@ -122,18 +114,26 @@ const MapPage = () => {
   };
 
   const handlePinSelect = (e) => {
-    const selectedPin = pins.find(pin => pin.id === Number(e.target.value));
+    console.log({e})
+    const selectedPin = pins.find(pin => pin.pinId == e);
+    console.log({selectedPin})
     if (selectedPin && map) {
       map.setView(selectedPin.latlng, 15);
     }
   };
 
-  const handleDeletePin = (id) => {
-    const pinToRemove = pins.find(pin => pin.id === id);
+  const handleDeletePin = async (pin) => {
+    const pinToRemove = pins.find(p => p.pinId == pin);
     if (pinToRemove && map) {
       map.removeLayer(pinToRemove.marker);
-      setPins(pins.filter(pin => pin.id !== id));
+      setPins(pins.filter(pin => pin.id !== pin));
     }
+    await fetch(`http://localhost:3001/event/${pinToRemove._id}`, {
+      method: "DELETE",
+      headers: {
+          "Content-Type": "application/json",
+      },
+  });
   };
 
   const handleAddressChange = (e) => {
@@ -163,6 +163,10 @@ const MapPage = () => {
       setPins((prevPins) => [...prevPins, { id: Date.now(), name: location.name, latlng: { lat: location.lat, lng: location.lng }, marker: newMarker }]);
     }
   };
+
+  // useEffect(() => {
+  //   console.log({pins})
+  // }, [pins])
 
   return (
     <div>
@@ -218,7 +222,7 @@ const MapPage = () => {
          {/* Active Pins Dropdown (TOP Right) */}
          <div style={{ position: 'absolute', top: '80px', right: '10px', zIndex: 1000, background: 'white', padding: '5px', borderRadius: '5px' }}>
           <label><b>Active Pins:</b></label>
-          <select onChange={handlePinSelect}>
+          <select onChange={e => handlePinSelect(e.target.value)}>
             <option value="">Select a Pin</option>
             {pins.map((pin) => (
               <option key={pin?.pinId} value={pin?.pinId}>{pin.name}</option>
@@ -228,7 +232,7 @@ const MapPage = () => {
         {pins.length > 0 && (
           <div style={{ position: "absolute", bottom: "20px", right: "20px", backgroundColor: "white", padding: "10px", borderRadius: "8px" }}>
             <label><b>Delete a Pin:</b></label>
-            <select onChange={(e) => handleDeletePin(Number(e.target.value))}>
+            <select onChange={(e) => {console.log({e}); handleDeletePin(e.target.value)}}>
               <option value="">-- Select Pin --</option>
               {pins.map((pin) => (
                 <option key={pin?.pinId} value={pin?.pinId}>{pin.name}</option>
