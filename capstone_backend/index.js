@@ -303,6 +303,70 @@ app.get("/clubs/getAll", async (req, res) => {
   }
 })
 
+app.get("/users/getAll", async (req, res) => {
+  try {
+    const collection = client.db('capstone-website').collection('users')
+    const users = await collection.find({}, {
+      projection: { _id: 1, username: 1, email: 1 }
+    }).toArray()
+
+    res.status(200).json(users)
+  } catch (error) {
+    console.error("Error fetching users:", error)
+    res.status(500).send("Error fetching users")
+  }
+})
+
+app.put("/c/:clubId/update", async (req, res) => {
+  try {
+    const clubId = req.params.clubId
+    const { president, newImportantPeople = [] } = req.body
+
+    const db = client.db('capstone-website')
+    const clubs = db.collection('clubs')
+    const users = db.collection('users')
+
+    const update = {}
+
+    if (president) {
+      update.$set = { president }
+    
+      await users.updateOne(
+        { _id: new ObjectId(president._id) },
+        { $addToSet: { roles: 'president' } }
+      )
+    }
+
+    if (newImportantPeople.length > 0) {
+      update.$addToSet = {
+        importantPeople: { $each: newImportantPeople }
+      }
+
+      const userIds = newImportantPeople.map(p => new ObjectId(p._id))
+      await users.updateMany(
+        { _id: { $in: userIds } },
+        { $addToSet: { roles: 'important' } }
+      )
+    }
+
+    if (!update.$set && !update.$addToSet) {
+      return res.status(400).send("No valid update fields provided")
+    }
+    const result = await clubs.findOneAndUpdate(
+      { _id: new ObjectId(clubId) },
+      update,
+      { returnDocument: 'after' }
+    )
+    if (!result) {
+      return res.status(404).send("Club not found")
+    }
+
+    res.status(200).json({ updatedClub: result })
+  } catch (error) {
+    console.error("Error updating club:", error)
+    res.status(500).send("Error updating club")
+  }
+})
 
 app.get("/both/getAll", async (req, res) => {
   try {

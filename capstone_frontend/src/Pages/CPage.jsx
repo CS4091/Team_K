@@ -4,8 +4,10 @@ import TopBar from '../Components/TopBar';
 import UserModal from '../Components/UserModal';
 import { useGlobalContext } from '../Context/GlobalContext';
 import { useParams } from 'react-router-dom';
-import { Box, Grid, Typography, TextField, Button, Paper } from '@mui/material';
+import { Box, Grid, Typography, TextField, Button, Paper, IconButton } from '@mui/material';
 import PostCard from '../Components/PostCard';
+import SettingsModal from '../Components/SettingsModal'
+import SettingsIcon from '@mui/icons-material/Settings'
 
 const CPage = () => {
   const {
@@ -26,6 +28,8 @@ const CPage = () => {
   const { cName } = useParams();
   const [announcement, setAnnouncement] = useState('');
   const [isEditing, setIsEditing] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [canEditClub, setCanEditClub] = useState(false)
 
   const getClub = async () => {
     const response = await fetch(`http://localhost:3001/c/${cName}`);
@@ -51,101 +55,123 @@ const CPage = () => {
     }
   };
 
-  useEffect(() => {
-    setAnnouncement('');
-    getClub();
-  }, [cName]);
+    useEffect(() => {
+      setAnnouncement('');
+            if (searched == false && cPosts.length == 0) {
+                getClub()
+                
+            }else { //sorting based on if pinned
+                setCPosts(prevPosts => 
+                    [...prevPosts].sort((a, b) => {
+                        return b.pin - a.pin;
+                    })
+                )
+            }
+        }, [cPosts])
+    
+    useEffect(() => {
+      setCanEditClub(false)
+        if (cObject.president && user.username) {
+            if ( user.username === cObject.president.username ||
+                user.username === cObject.creator ||
+                (cObject.importantPeople?.some(p => p.username === user.username))){
+                    setCanEditClub(true)
+                }
+        }
+    }, [cObject, user])
 
-  useEffect(() => {
-    if (!searched && cPosts.length === 0) {
-      getClub();
-    } else {
-      setCPosts(prevPosts =>
-        [...prevPosts].sort((a, b) => b.pin - a.pin)
-      );
-    }
-  }, [searched, cPosts]);
+    
+    return (
+        <div>
+            <ThemeProvider theme={theme}>
+                <TopBar/>
+                {cObject.name ? (
+                    <div>
+                        <Box className="rounded-lg p-6 mb-6 text-center relative">
+                            <Typography variant='h4' gutterBottom>{cObject?.name}</Typography>
+                            {canEditClub ? (
+                                <IconButton 
+                                    onClick={() => setIsSettingsOpen(true)} 
+                                    sx={{ position: 'absolute', top: 10, right: 10 }}
+                                >
+                                    <SettingsIcon />
+                                </IconButton>
+                            ): (<></>)}
+                            {cObject.president ? (
+                                <Typography variant='subtitle1'>President: {cObject.president.username}</Typography>
+                            ) : (
+                                <Typography variant='subtitle1'>{cObject.department} - {cObject.number}</Typography>
+                            )}
+                            
+                        </Box>
+                         {/* Announcement Section */}
+                        <Paper
+                          elevation={3}
+                          sx={{
+                            width: '100%',
+                            maxWidth: '100%',
+                            px: 2,
+                            py: 3,
+                            mb: 4,
+                            mx: 'auto',
+                            border: '1px solid #ccc',
+                            borderRadius: 2
+                          }}
+                        >
+                          <Typography variant="h6" align="center" gutterBottom>
+                            Announcements
+                          </Typography>
 
-  return (
-    <div>
-      <ThemeProvider theme={theme}>
-        <TopBar />
-        {cObject ? (
-          <div>
-            <Box className="rounded-lg p-6 mb-6 text-center">
-              <Typography variant="h4" gutterBottom>{cObject.name}</Typography>
-              {cObject.president ? (
-                <Typography variant="subtitle1">President: {cObject.president?.username}</Typography>
-              ) : (
-                <Typography variant="subtitle1">{cObject.department} - {cObject.number}</Typography>
-              )}
-            </Box>
+                          {isEditing ? (
+                            <Box>
+                              <TextField
+                                fullWidth
+                                multiline
+                                minRows={3}
+                                variant="outlined"
+                                value={announcement}
+                                onChange={(e) => setAnnouncement(e.target.value)}
+                              />
+                              <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 2 }}>
+                                <Button onClick={() => setIsEditing(false)} variant="outlined" color="secondary">
+                                  Cancel
+                                </Button>
+                                <Button onClick={saveAnnouncement} variant="contained" color="primary">
+                                  Save
+                                </Button>
+                              </Box>
+                            </Box>
+                          ) : (
+                            <Box sx={{ px: 1 }}>
+                              <Typography sx={{ whiteSpace: 'pre-wrap', mb: 2 }}>
+                                {announcement || "No announcements"}
+                              </Typography>
+                              {user?.username && (
+                                <Button onClick={() => setIsEditing(true)} variant="outlined" size="small">
+                                  edit
+                                </Button>
+                              )}
+                            </Box>
+                          )}
+                        </Paper>
+                        <Grid container spacing={3}>
+                            {cPosts.map((post, index) => {
+                                return (
+                                    <Grid item xs={12} key={index}>
+                                        <PostCard post={post} hidepin={!canEditClub}/>
+                                    </Grid>
+                                )
+                            })}
+                        </Grid>
+                    </div>
+                ) : (
+                    <>Loading...</>
+                )} 
+                <UserModal isOpen={isModalOpen} setIsOpen={setIsModalOpen}/>
+                <SettingsModal isOpen={isSettingsOpen} setIsOpen={setIsSettingsOpen} />
+            </ThemeProvider>
+        </div>
+    )
+}
 
-            {/* Announcement Section */}
-            <Paper
-              elevation={3}
-              sx={{
-                width: '100%',
-                maxWidth: '100%',
-                px: 2,
-                py: 3,
-                mb: 4,
-                mx: 'auto',
-                border: '1px solid #ccc',
-                borderRadius: 2
-              }}
-            >
-              <Typography variant="h6" align="center" gutterBottom>
-                Announcements
-              </Typography>
-
-              {isEditing ? (
-                <Box>
-                  <TextField
-                    fullWidth
-                    multiline
-                    minRows={3}
-                    variant="outlined"
-                    value={announcement}
-                    onChange={(e) => setAnnouncement(e.target.value)}
-                  />
-                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 2 }}>
-                    <Button onClick={() => setIsEditing(false)} variant="outlined" color="secondary">
-                      Cancel
-                    </Button>
-                    <Button onClick={saveAnnouncement} variant="contained" color="primary">
-                      Save
-                    </Button>
-                  </Box>
-                </Box>
-              ) : (
-                <Box sx={{ px: 1 }}>
-                  <Typography sx={{ whiteSpace: 'pre-wrap', mb: 2 }}>
-                    {announcement || "No announcements"}
-                  </Typography>
-                  {user?.username && (
-                    <Button onClick={() => setIsEditing(true)} variant="outlined" size="small">
-                      edit
-                    </Button>
-                  )}
-                </Box>
-              )}
-            </Paper>
-            <Grid container spacing={3}>
-              {cPosts.map((post, index) => (
-                <Grid item xs={12} key={index}>
-                  <PostCard post={post} />
-                </Grid>
-              ))}
-            </Grid>
-          </div>
-        ) : (
-          <>Loading...</>
-        )}
-        <UserModal isOpen={isModalOpen} setIsOpen={setIsModalOpen} />
-      </ThemeProvider>
-    </div>
-  );
-};
-
-export default CPage;
+export default CPage
