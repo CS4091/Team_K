@@ -172,7 +172,7 @@ const MapPage = () => {
     <div>
       <ThemeProvider theme={theme}>
         <TopBar />
-
+      <div>
         <div style={{ position: 'absolute', top: '65px', left: '135px', zIndex: 1000, background: 'rgb(25, 71, 47)', padding: '10px', borderRadius: '5px' }}>
           <input 
             type="text" 
@@ -218,8 +218,6 @@ const MapPage = () => {
             {pinMode ? "Cancel Pin" : "Pin"}
         </button>
 
-        <div id="map" style={{ height: "600px", width: "100%", marginTop: "20px", borderRadius: "10px" }}></div>
-
         {showPinModal && (
           <div className="pin-modal">
             <p>Enter a name for the pin:</p>
@@ -244,7 +242,15 @@ const MapPage = () => {
           </select>
         </div>
         {pins.length > 0 && canAddEvents && (
-          <div style={{ position: "absolute", bottom: "20px", right: "20px", backgroundColor: "white", padding: "10px", borderRadius: "8px" }}>
+          <div style={{
+            position: "absolute", 
+            top: "140px", // move it under the Active Pins dropdown
+            right: "10px", 
+            backgroundColor: "white", 
+            padding: "10px", 
+            borderRadius: "8px",
+            zIndex: 1000 
+            }}>
             <label><b>Delete a Pin:</b></label>
             <select onChange={(e) => {handleDeletePin(e.target.value)}}>
               <option value="">-- Select Pin --</option>
@@ -254,6 +260,8 @@ const MapPage = () => {
             </select>
           </div>
         )}
+      </div>
+      <div id="map" style={{ height: "600px", width: "100%", marginTop: "100px", borderRadius: "10px" }}></div>
       </ThemeProvider>
       <UserModal isOpen={isModalOpen} setIsOpen={setIsModalOpen} />
     </div>
