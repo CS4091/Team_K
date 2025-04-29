@@ -259,7 +259,9 @@ useEffect(() => {
             email: event.email || "",
             phone: event.phone || "",
             link: event.link || "",
-            image: event.image || ''
+            image: event.image || '',
+            start: event.start,
+            end: event.end  
         });
         setModalOpen(true);
     };
