@@ -11,6 +11,7 @@ import "../index.css";
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import TopBar from '../Components/TopBar';
 import { Modal, Button, TextField, Box, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import UserModal from '../Components/UserModal';
 
 
 
@@ -33,7 +34,8 @@ const CustomAgendaEvent = ({
     onEdit,
     onDelete,
     theme,
-    searchTerm
+    searchTerm,
+    canAddEvents
 }) => {
     if (searchTerm && !event?.title.toLowerCase().includes(searchTerm?.toLowerCase())) {
         return null;
@@ -50,21 +52,30 @@ const CustomAgendaEvent = ({
             id={`event-${event.id}`}
             onMouseEnter={() => setHoveredEvent(event.id)}
             onMouseLeave={() => setHoveredEvent(null)}
+            // style={{
+            //     padding: '8px',
+            //     borderRadius: '5px',
+            //     backgroundColor:
+            //         hoveredEvent === event.id
+            //             ? theme.palette.primary.main
+            //             : selectedEvent && selectedEvent.id === event.id
+            //             ? "white"
+            //             : 'transparent',
+            //     color:
+            //         hoveredEvent === event.id
+            //             ? theme.palette.primary.contrastText
+            //             : selectedEvent && selectedEvent.id === event.id
+            //             ? theme.palette.primary.main
+            //             : 'transparent',
+            //     cursor: 'pointer',
+            //     border: '1px solid #ddd',
+            //     marginBottom: '5px'
+            // }}
             style={{
                 padding: '8px',
                 borderRadius: '5px',
-                backgroundColor:
-                    hoveredEvent === event.id
-                        ? theme.palette.primary.main
-                        : selectedEvent && selectedEvent.id === event.id
-                        ? "white"
-                        : 'transparent',
-                color:
-                    hoveredEvent === event.id
-                        ? theme.palette.primary.contrastText
-                        : selectedEvent && selectedEvent.id === event.id
-                        ? theme.palette.primary.main
-                        : 'transparent',
+                backgroundColor: theme.palette.primary.main, // Always green
+                color: theme.palette.primary.contrastText,    // Always readable text
                 cursor: 'pointer',
                 border: '1px solid #ddd',
                 marginBottom: '5px'
@@ -105,18 +116,23 @@ const CustomAgendaEvent = ({
                     <br />
                 </>
             )}
-            <Button size="small" onClick={() => onEdit(event)} variant="outlined" color="black">
-                Edit
-            </Button>
-            <Button
-                size="small"
-                onClick={() => onDelete(event)}
-                variant="outlined"
-                color="error"
-                style={{ marginLeft: '10px' }}
-            >
-                Delete
-            </Button>
+            {canAddEvents && (
+                <div>
+                    <Button size="small" onClick={() => onEdit(event)} variant="outlined" color="black">
+                        Edit
+                    </Button>
+                    <Button
+                        size="small"
+                        onClick={() => onDelete(event)}
+                        variant="outlined"
+                        color="error"
+                        style={{ marginLeft: '10px' }}
+                    >
+                        Delete
+                    </Button>
+                </div>
+            )}
+            
         </div>
     );
 };
@@ -126,7 +142,7 @@ const CustomAgendaEvent = ({
 
 
 const CalendarPage = () => {
-    const { theme } = useGlobalContext();
+    const { theme, user, isModalOpen, setIsModalOpen } = useGlobalContext();
     const [events, setEvents] = useState([]);
     const [view, setView] = useState(Views.MONTH);
     const [filteredEvents, setFilteredEvents] = useState([]);
@@ -145,6 +161,7 @@ const CalendarPage = () => {
     const [modalData, setModalData] = useState({
         title: '', location: '', summary: '', hostingGroup: '', coordinator: '', email: '', phone: '', link: '', image: ''
     });
+    const [canAddEvents, setCanAddEvents] = useState(false)
 
     const agendaRef = useRef(null);
 
@@ -180,9 +197,16 @@ useEffect(() => {
         console.error("Calendar Error:", error);
       }
     };
-  
+    
     fetchCalendarData();
+    
   }, []);
+
+  useEffect(() => {
+    if( user.userRoles ){
+        setCanAddEvents(user?.userRoles.includes("important"))
+    }
+  }, [user])
   
 
     // Auto-scroll to the selected event in Agenda View
@@ -336,6 +360,7 @@ useEffect(() => {
         <ThemeProvider theme={theme}>
             <div>
                 <TopBar />
+                <UserModal isOpen={isModalOpen} setIsOpen={setIsModalOpen}></UserModal>
                 <div className="p-4">
                     <TextField 
                         label="Search Events" 
@@ -434,6 +459,7 @@ useEffect(() => {
                                         onDelete={handleDeleteEvent}
                                         searchTerm={searchTerm}
                                         theme={theme}
+                                        canAddEvents={canAddEvents}
                                     />
                                 )
                             },
@@ -543,6 +569,7 @@ useEffect(() => {
                                 variant="contained"
                                 color="primary"
                                 onClick={handleModalSave}
+                                disabled={!canAddEvents}
                             >
                                 Save
                             </Button>

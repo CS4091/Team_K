@@ -13,10 +13,11 @@ const MapPage = () => {
   const [pinName, setPinName] = useState('');
   const [pinLocation, setPinLocation] = useState(null);
   const [pins, setPins] = useState([]);
-  const { theme, isModalOpen, setIsModalOpen } = useGlobalContext();
+  const { theme, isModalOpen, setIsModalOpen, user } = useGlobalContext();
   const [address, setAddress] = useState('');
   const [filteredAddresses, setFilteredAddresses] = useState([]);
   const [arePinsLoaded, setArePinsLoaded] = useState(false)
+  const [canAddEvents, setCanAddEvents] = useState(false)
 
   const hardcodedAddresses = [
     { name: "Computer Science Building", lat: 37.95586, lng: -91.77464 },
@@ -29,7 +30,6 @@ const MapPage = () => {
     const response = await fetch(`http://localhost:3001/event/getAll`)
     const doc = await response.json()
     const newPins = doc.map(p => {
-      // console.log({p})
       if (p.latlng?.lng) {
         const newMarker = L.marker(p.latlng).addTo(map)
           .bindPopup(`<b>${p?.name}</b><br>Lat: ${p.latlng.lat.toFixed(5)}<br>Lng: ${p.latlng.lng.toFixed(5)}`)
@@ -92,6 +92,12 @@ const MapPage = () => {
     };
   }, [map, pinMode]);
 
+   useEffect(() => {
+      if( user.userRoles ){
+          setCanAddEvents(user?.userRoles.includes("important"))
+      }
+    }, [user])
+
   const handlePinSubmit = async () => {
     if (map && pinLocation && pinName.trim()) {
       const newMarker = L.marker(pinLocation).addTo(map)
@@ -114,9 +120,7 @@ const MapPage = () => {
   };
 
   const handlePinSelect = (e) => {
-    console.log({e})
     const selectedPin = pins.find(pin => pin.pinId == e);
-    console.log({selectedPin})
     if (selectedPin && map) {
       map.setView(selectedPin.latlng, 15);
     }
@@ -164,10 +168,6 @@ const MapPage = () => {
     }
   };
 
-  // useEffect(() => {
-  //   console.log({pins})
-  // }, [pins])
-
   return (
     <div>
       <ThemeProvider theme={theme}>
@@ -200,8 +200,22 @@ const MapPage = () => {
         <button 
           className="button" 
           onClick={() => setPinMode(!pinMode)} 
-          style={{ backgroundColor: pinMode ? "green" : "rgb(25, 71, 47)", marginTop: '5px', padding: "10px 30px", borderRadius: "8px", color: 'white' }}>
-          {pinMode ? "Cancel Pin" : "Pin"}
+          style={{ 
+            backgroundColor: !canAddEvents 
+              ? "gray" 
+              : pinMode 
+                ? "green" 
+                : "rgb(25, 71, 47)", 
+            marginTop: '5px', 
+            padding: "10px 30px", 
+            borderRadius: "8px", 
+            color: 'white', 
+            cursor: !canAddEvents ? "not-allowed" : "pointer",
+            opacity: !canAddEvents ? 0.6 : 1
+          }}
+          disabled={!canAddEvents}
+          >
+            {pinMode ? "Cancel Pin" : "Pin"}
         </button>
 
         <div id="map" style={{ height: "600px", width: "100%", marginTop: "20px", borderRadius: "10px" }}></div>
@@ -229,10 +243,10 @@ const MapPage = () => {
             ))}
           </select>
         </div>
-        {pins.length > 0 && (
+        {pins.length > 0 && canAddEvents && (
           <div style={{ position: "absolute", bottom: "20px", right: "20px", backgroundColor: "white", padding: "10px", borderRadius: "8px" }}>
             <label><b>Delete a Pin:</b></label>
-            <select onChange={(e) => {console.log({e}); handleDeletePin(e.target.value)}}>
+            <select onChange={(e) => {handleDeletePin(e.target.value)}}>
               <option value="">-- Select Pin --</option>
               {pins.map((pin) => (
                 <option key={pin?.pinId} value={pin?.pinId}>{pin.name}</option>

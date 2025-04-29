@@ -8,6 +8,7 @@ import { Box, Grid, Typography, TextField, Button, Paper, IconButton } from '@mu
 import PostCard from '../Components/PostCard';
 import SettingsModal from '../Components/SettingsModal'
 import SettingsIcon from '@mui/icons-material/Settings'
+import {Snackbar} from '@mui/material';
 
 const CPage = () => {
   const {
@@ -22,7 +23,9 @@ const CPage = () => {
     setCObject,
     user,
     setIsSnackOpen,
-    setSnackMessage
+    setSnackMessage,
+    isSnackOpen,
+    snackMessage
   } = useGlobalContext();
 
   const { cName } = useParams();
@@ -48,18 +51,19 @@ const CPage = () => {
     });
 
     const data = await response.json();
-    if (data.message === "Announcement updated successfully") {
-      setSnackMessage(data.message);
-      setIsSnackOpen(true);
+    if (data.message === "announcement has been contained successfuly") {
       setIsEditing(false);
+    } else {
+      setIsSnackOpen(true)
+      setSnackMessage('Message failed to save')
     }
   };
 
     useEffect(() => {
-      setAnnouncement('');
+      
             if (searched == false && cPosts.length == 0) {
                 getClub()
-                
+                setAnnouncement('');
             }else { //sorting based on if pinned
                 setCPosts(prevPosts => 
                     [...prevPosts].sort((a, b) => {
@@ -146,7 +150,7 @@ const CPage = () => {
                               <Typography sx={{ whiteSpace: 'pre-wrap', mb: 2 }}>
                                 {announcement || "No announcements"}
                               </Typography>
-                              {user?.username && (
+                              {user?.username && canEditClub && (
                                 <Button onClick={() => setIsEditing(true)} variant="outlined" size="small">
                                   edit
                                 </Button>
@@ -169,6 +173,7 @@ const CPage = () => {
                 )} 
                 <UserModal isOpen={isModalOpen} setIsOpen={setIsModalOpen}/>
                 <SettingsModal isOpen={isSettingsOpen} setIsOpen={setIsSettingsOpen} />
+                <Snackbar open={isSnackOpen} autoHideDuration={3000} onClose={() => setIsSnackOpen(false)} anchorOrigin={{vertical: 'bottom', horizontal: 'center'}} message={snackMessage}/>
             </ThemeProvider>
         </div>
     )
