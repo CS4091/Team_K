@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Calendar, dateFnsLocalizer, Views } from 'react-big-calendar';
+import { useNavigate } from "react-router-dom";
 import { ThemeProvider } from '@mui/material/styles';
 import { useGlobalContext } from '../Context/GlobalContext';
 import format from 'date-fns/format';
@@ -10,7 +11,7 @@ import enUS from 'date-fns/locale/en-US';
 import "../index.css";
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import TopBar from '../Components/TopBar';
-import { Modal, Button, TextField, Box, Select, MenuItem, FormControl, InputLabel, Typography } from '@mui/material';
+import { Modal, Button, TextField, Box, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 
 
 
@@ -25,7 +26,6 @@ const localizer = dateFnsLocalizer({
 
 
 
-// Custom Agenda Event Display
 const CustomAgendaEvent = ({
     event,
     selectedEvent,
@@ -36,9 +36,15 @@ const CustomAgendaEvent = ({
     theme,
     searchTerm
 }) => {
-    if (searchTerm && !event.title.toLowerCase().includes(searchTerm.toLowerCase())) {
+    if (searchTerm && !event?.title.toLowerCase().includes(searchTerm?.toLowerCase())) {
         return null;
     }
+
+    const formatField = (field, fallback = "Not provided") => {
+        if (!field) return fallback;
+        if (typeof field === "object") return JSON.stringify(field);
+        return field;
+    };
 
     return (
         <div
@@ -67,17 +73,17 @@ const CustomAgendaEvent = ({
         >
             <strong>{event.title}</strong>
             <br />
-            📍 <strong>Location:</strong> {event.location || "No location specified"}
+            📍 <strong>Location:</strong> {formatField(event.location, "No location specified")}
             <br />
-            📝 <strong>Summary:</strong> {event.summary || "No summary provided"}
+            📝 <strong>Summary:</strong> {formatField(event.summary, "No summary provided")}
             <br />
-            🏢 <strong>Hosting Group:</strong> {event.hostingGroup || "Not provided"}
+            🏢 <strong>Hosting Group:</strong> {formatField(event.hostingGroup)}
             <br />
-            👤 <strong>Event Coordinator:</strong> {event.coordinator || "Not provided"}
+            👤 <strong>Event Coordinator:</strong> {formatField(event.coordinator)}
             <br />
-            📧 <strong>Email:</strong> {event.email || "Not provided"}
+            📧 <strong>Email:</strong> {formatField(event.email)}
             <br />
-            📞 <strong>Phone:</strong> {event.phone || "Not provided"}
+            📞 <strong>Phone:</strong> {formatField(event.phone)}
             <br />
             {event.link && (
                 <>
@@ -100,7 +106,7 @@ const CustomAgendaEvent = ({
                     <br />
                 </>
             )}
-            <Button size="small" onClick={() => onEdit(event)} variant="outlined" color="white">
+            <Button size="small" onClick={() => onEdit(event)} variant="outlined" color="black">
                 Edit
             </Button>
             <Button
@@ -119,8 +125,10 @@ const CustomAgendaEvent = ({
 
 
 
+
 const CalendarPage = () => {
-    const { theme } = useGlobalContext();
+    const { theme, pendingPinData, setPendingPinData, setPendingEventData } = useGlobalContext();
+    const navigate = useNavigate();
     const [events, setEvents] = useState([]);
     const [view, setView] = useState(Views.MONTH);
     const [filteredEvents, setFilteredEvents] = useState([]);
@@ -136,8 +144,6 @@ const CalendarPage = () => {
     const [hoveredEvent, setHoveredEvent] = useState(null);
     const [hoveredSlot, setHoveredSlot] = useState(null);
     const [hoveredCalendarEvent, setHoveredCalendarEvent] = useState(null);
-    const [isRecurring, setIsRecurring] = useState(null);
-    const [recurringDates, setRecurringDates] = useState([]);
     const [modalData, setModalData] = useState({
         title: '', location: '', summary: '', hostingGroup: '', coordinator: '', email: '', phone: '', link: '', image: ''
     });
@@ -158,18 +164,28 @@ const CalendarPage = () => {
         </Select>
     </FormControl>
 
-    useEffect(() => {
-        const fetchCalendarData = async () => {
-            try {
-                const response = await fetch('http://localhost:3001/calendar');
-                const doc = await response.json();
-                setEvents(doc.map((e, index) => ({ ...e, id: index }))); // Assign unique IDs
-            } catch (error) {
-                console.error("Calendar Error:", error);
-            }
-        };
-        fetchCalendarData();
-    }, []);
+useEffect(() => {
+    const fetchCalendarData = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/event/getAll');
+        const doc = await response.json();
+  
+        const parsedEvents = doc.map((e, index) => ({
+          ...e,
+          id: e._id || index,
+          start: new Date(e.start),
+          end: new Date(e.end),
+        }));
+        const realEvents = parsedEvents.filter(event => event.title)
+        setEvents(realEvents);
+      } catch (error) {
+        console.error("Calendar Error:", error);
+      }
+    };
+  
+    fetchCalendarData();
+  }, []);
+  
 
     // Auto-scroll to the selected event in Agenda View
     useEffect(() => {
@@ -186,7 +202,7 @@ const CalendarPage = () => {
     const handleSearch = (e) => {
         e.preventDefault();
         const filtered = events.filter(event =>
-            event.title.toLowerCase().includes(searchTerm.toLowerCase())
+            event?.title.toLowerCase().includes(searchTerm?.toLowerCase())
         );
         setFilteredEvents(filtered);
     };
@@ -194,7 +210,7 @@ const CalendarPage = () => {
     useEffect(() => {
         let filtered = events;
         if (searchTerm) {
-            filtered = filtered.filter(event => event.title.toLowerCase().includes(searchTerm.toLowerCase()));
+            filtered = filtered.filter(event => event?.title.toLowerCase().includes(searchTerm?.toLowerCase()));
         }
         if (selectedLocation) {
             filtered = filtered.filter(event => event.location === selectedLocation);
@@ -208,45 +224,33 @@ const CalendarPage = () => {
         setFilteredEvents(filtered);
     }, [searchTerm, selectedLocation, selectedHostingGroup, selectedCoordinator, events]);
     
-    //finding location of dates by weekday
-    const getAllWeekdayDates = (day) => {
-        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        const dayIndex = days.indexOf(dayName);
-        const today = new Date();
-        const month = today.getMonth();
-        const year = today.getFullYear();
-        const dates = [];
-
-        for(let i = new Date(year, month, 1); i.getMonth() === month; i.setDate(i.getDate() + 1)) {
-            if(i.getDay() === dayIndex) {
-                dates.push(new Date(i));
-            }
-        }
-        return dates;
-    }
-
     useEffect(() => {
-        if(!isRecurring) return;
-        const headers = document.querySelectorAll(".rbc-header span");
-        const listeners = Array.from(headers).map((header) => {
-            const handleClick = () => {
-                const weekdayDates = getAllWeekdayDates(text);
-                setRecurringDates(prev =>
-                    [...new Set([...prev.map(d => d.toDateString()), ...weekdayDates.map(d => d.toDateString())])]
-                        .map(date => new Date(date))
-                );
-            };
+        if (pendingPinData) {
+          setModalData(prev => ({
+            ...prev,
+            title: pendingPinData.name || '',
+            location: pendingPinData.latlng 
+              ? `${pendingPinData.latlng.lat.toFixed(5)}, ${pendingPinData.latlng.lng.toFixed(5)}`
+              : '',
+            summary: '',
+            hostingGroup: '',
+            coordinator: '',
+            email: '',
+            phone: '',
+            link: '',
+            image: '',
+            start: '', // Let user pick
+            end: ''    // Let user pick
+          }));
+    
+          setSelectedEvent(null); // New event, not editing an old one
+          setModalOpen(true);
+          setPendingPinData(null);
+        }
+    }, [pendingPinData]);
+    
 
-            header.addEventListener("click", handleClick);
-            return () => header.removeEventListener("click", handleClick);
-        });
-
-        return () => {
-            listeners.forEach(cleanup => cleanup?.());
-        };
-    }, [isRecurring]);
-
-    // Open the edit modal
+    
     const handleEditClick = (event) => {
         setSelectedEvent(event);
         setModalData({
@@ -263,52 +267,65 @@ const CalendarPage = () => {
         setModalOpen(true);
     };
 
-    // Handle input changes in modal
+    
     const handleModalChange = (e) => {
         setModalData({ ...modalData, [e.target.name]: e.target.value });
     };
 
-    // Save edited event
-    const handleModalSave = () => {
-        if(isRecurring) {
-            const newEvents = recurringDates.map((date, index) => ({
-                id: events.length + index,
-                ...modalData,
-                start: new Date(date.setHours(9, 0, 0, 0)),
-                end: new Date(date.setHours(10, 0, 0, 0)),
-            }));
-            setEvents([...events, ...newEvents]);
-        } else{
-            if(selectedEvent) {
-                const updatedEvent = { ...selectedEvent, ...modalData };
-                setEvents(events.map(e => (e.id === selectedEvent.id ? updatedEvent : e)));
-
-            } else{
-                const newEvent = {
-                    id: events.length,
-                    ...modalData,
-                    start: modalData.start || new Date(),
-                    end: modalData.end || new Date(),
-                };
-                setEvents([...events, newEvent]);
-            }
+    const handleModalSave = async () => {
+        const eventToSave = {
+          ...modalData,
+          start: modalData.start || new Date(),
+          end: modalData.end || new Date()
         }
-        
-        setModalOpen(false);
-        setSelectedEvent(null);
-        setIsRecurring(false);
-        setRecurringDates([]);
-    };
+      
+        try {
+          if (selectedEvent && selectedEvent._id) {
+            
+            await fetch(`http://localhost:3001/event/${selectedEvent._id}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(eventToSave)
+            })
+          } else {
+            
+            await fetch("http://localhost:3001/event", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(eventToSave)
+            })
+          }
+          
+          const response = await fetch('http://localhost:3001/event/getAll')
+          const doc = await response.json()
+          setEvents(doc.map((e, index) => ({ ...e, id: e._id || index, start: new Date(e.start), end: new Date(e.end) })))
+          const wantsToAddPin = window.confirm("Would you like to add a Pin for this event?");
+          if (wantsToAddPin) {
+            setPendingEventData(eventToSave);
+            navigate("/map");
+          }
+        } catch (err) {
+          console.error("Error saving event:", err)
+        }
+      
+        setModalOpen(false)
+        setSelectedEvent(null)
+      }
+      
 
-    // Delete an event
-    const handleDeleteEvent = (event) => {
-        const confirmDelete = window.confirm(`Are you sure you want to delete "${event.title}"?`);
-        if (!confirmDelete) return;
+      const handleDeleteEvent = async (event) => {
+        const confirmDelete = window.confirm(`Are you sure you want to delete "${event.title}"?`)
+        if (!confirmDelete) return
+      
+        try {
+          await fetch(`http://localhost:3001/event/${event._id}`, { method: "DELETE" })
+          setEvents(events.filter(e => e._id !== event._id))
+        } catch (error) {
+          console.error("Error deleting event:", error)
+        }
+      }
+      
 
-        setEvents(events.filter(e => e.id !== event.id)); // Remove from state
-    };
-
-    // Add a new event
     const handleAddEvent = (slotInfo) => {
         
         setModalData({
@@ -415,21 +432,7 @@ const CalendarPage = () => {
                         length={31}
                         onView={setView}
                         selectable
-                        //onSelectSlot={handleAddEvent} // Enable adding new events
-                        onSelectSlot={(slotInfo) => {
-                            if(isRecurring) {
-                                const clickedDate = slotInfo.start;
-                                setRecurringDates(prev => {
-                                    const exists = prev.find(d => d.toDateString() === clickedDate.toDateString());
-                                    return exists
-                                        ? prev.filter(d => d.toDateString() !== clickedDate.toDateString())
-                                        : [...prev, clickedDate];
-                                });
-                            } else {
-                                handleAddEvent(slotInfo);
-                            }
-                        }}
-
+                        onSelectSlot={handleAddEvent} // Enable adding new events
                         onSelectEvent={(event) => {
                             setSelectedEvent(event);
                             setView(Views.AGENDA);
@@ -442,7 +445,7 @@ const CalendarPage = () => {
                                     onMouseLeave={() => setHoveredCalendarEvent(null)}
                                     style={{
                                         backgroundColor: hoveredCalendarEvent === event.id ? "white" : theme.palette.primary.main,
-                                        color: hoveredCalendarEvent === event.id ? "black" : theme.palette.primary.main,
+                                        color: hoveredCalendarEvent === event.id ? "black" : "white",
                                         padding: "5px",
                                         borderRadius: "4px",
                                         cursor: "pointer",
@@ -492,98 +495,93 @@ const CalendarPage = () => {
                 </div>
 
                 {/* Event Edit Modal */}
-                {modalOpen && (
+                <Modal open={modalOpen} onClose={() => setModalOpen(false)} BackdropProps={{
+                    style: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)'
+                    }
+                }}>
                     <Box
                         sx={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        width: 500,
-                        maxHeight: '90vh',
-                        overflowY: 'auto',
-                        bgcolor: 'background.paper',
-                        boxShadow: 24,
-                        borderRadius: 2,
-                        zIndex: 10,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        p: 4,
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: 400,
+                            maxHeight: '90vh',
+                            bgcolor: 'background.paper',
+                            boxShadow: 24,
+                            borderRadius: 2,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            p: 0
                         }}
                     >
-                        <Typography variant="h6" sx={{ mb: 2 }}>
-                        Add a New Event
-                        </Typography>
+                        {/* Scrollable content */}
+                        <Box sx={{ p: 4, overflowY: 'auto', flex: 1 }}>
+                            <h2>Add a New Event</h2>
 
-                        <Button
-                        variant={isRecurring ? "contained" : "outlined"}
-                        onClick={() => setIsRecurring((prev) => !prev)}
-                        sx={{ mb: 2 }}
-                        >
-                        {isRecurring ? "Cancel Selection" : "Recurring Event"}
-                        </Button>
-
-                        {!isRecurring ? (
-                        <>
                             {["title", "location", "summary", "hostingGroup", "coordinator", "email", "phone"].map((field) => (
-                            <TextField
-                                key={field}
-                                fullWidth
-                                label={field.replace(/([A-Z])/g, ' $1').trim()}
-                                name={field}
-                                value={modalData[field]}
-                                onChange={handleModalChange}
-                                margin="normal"
-                            />
+                                <TextField
+                                    key={field}
+                                    fullWidth
+                                    label={field.replace(/([A-Z])/g, ' $1').trim()}
+                                    name={field}
+                                    value={modalData[field]}
+                                    onChange={handleModalChange}
+                                    margin="normal"
+                                />
                             ))}
 
                             <TextField
-                            fullWidth
-                            label="Event Link"
-                            name="link"
-                            value={modalData.link}
-                            onChange={handleModalChange}
-                            margin="normal"
+                                fullWidth
+                                label="Event Link"
+                                name="link"
+                                value={modalData.link}
+                                onChange={handleModalChange}
+                                margin="normal"
                             />
-                            <TextField
-                            fullWidth
-                            label="Image URL"
-                            name="image"
-                            value={modalData.image}
-                            onChange={handleModalChange}
-                            margin="normal"
-                            />
-                        </>
-                        ) : (
-                        <Typography variant="subtitle1" color="text.secondary">
-                            Click on Calendar Dates and Weekday Headers to Select Recurring Days
-                        </Typography>
-                        )}
 
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
-                        <Button
-                            variant="outlined"
-                            onClick={() => setModalOpen(false)}
-                            sx={{
-                            backgroundColor: 'white',
-                            color: theme.palette.primary.main,
-                            borderColor: theme.palette.primary.main,
-                            '&:hover': { backgroundColor: '#f5f5f5' },
-                            }}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={handleModalSave}
-                        >
-                            Save
-                        </Button>
+                            <TextField
+                                fullWidth
+                                label="Image URL"
+                                name="image"
+                                value={modalData.image}
+                                onChange={handleModalChange}
+                                margin="normal"
+                            />
+                        </Box>
+
+                        {/* Footer buttons */}
+                        <Box sx={{
+                            p: 2,
+                            borderTop: '1px solid #eee',
+                            display: 'flex',
+                            justifyContent: 'space-between'
+                        }}>
+                            <Button
+                                variant="outlined"
+                                onClick={() => setModalOpen(false)}
+                                sx={{
+                                    backgroundColor: 'white',
+                                    color: theme.palette.primary.main,
+                                    borderColor: theme.palette.primary.main,
+                                    '&:hover': {
+                                        backgroundColor: '#f5f5f5',
+                                    },
+                                }}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={handleModalSave}
+                            >
+                                Save
+                            </Button>
                         </Box>
                     </Box>
-                    )}
-
+                </Modal>
             </div>
         </ThemeProvider>
     );
