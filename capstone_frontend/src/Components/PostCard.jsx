@@ -29,7 +29,7 @@ const PostCard = ({ post, hidepin, minimal = false }) => {
             setSnackMessage('You must be logged in to pin a post!')
             return
         }
-        const newpost = { ...post, pin: !post.pin }
+        const newpost = {...post, pin: !post.pin }
         const response = await fetch(`http://localhost:3001/post/${post._id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },

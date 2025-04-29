@@ -6,9 +6,12 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const sendEmail = require("./email")
 
+const cors = require("cors");
+app.use(cors());
+
 app.use(express.json())
 app.use(function (req, res, next) {
-    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
+    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173', 'http://localhost:5173/map');
     res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Access-Control-Allow-Headers');
     next();
@@ -76,6 +79,8 @@ app.post("/post", async (req, res) => {
       class: req.body.class || "",
       club: req.body.club || "",
       pin: req.body.pin || false,
+      likedBy: req.body.likedBy || [],
+      dislikedBy: req.body.dislikedBy || []
     }
 
     // Insert the new post into the 'post' collection
@@ -104,18 +109,20 @@ app.put("/post/:postId", async (req, res) => {
       class: req.body.class,
       club: req.body.club,
       pin: req.body.pin,
+      likedBy : req.body.likedBy,
+      dislikedBy: req.body.dislikedBy
     };
 
-    const result = await collection.updateOne(
+    const result = await collection.findOneAndUpdate(
       { _id: new ObjectId(postId) },
-      { $set: updatedPost }
-    );
-
-    if (result.matchedCount === 0) {
+      { $set: updatedPost },
+      { returnDocument: "after" } // returns the updated document
+    )
+    if (!result) {
       return res.status(404).json({ message: "Post not found" });
     }
 
-    res.status(200).json({ message: "Post updated successfully" });
+    res.status(200).json({ message: "Post updated successfully", post: result });
   } catch (error) {
     console.error("Error updating post:", error);
     res.status(500).send("Error updating post");
@@ -222,7 +229,8 @@ app.post("/user/login", async (req, res) => {
         username: user.username,
         userRoles: user.roles,
         userEmail: user.email,
-        _id: user._id
+        _id: user._id,
+        verified: user.verified
       })
     } catch (error) {
       console.error("Error during login:", error)
@@ -511,6 +519,108 @@ app.get('/c/:cName', async (req, res) => {
   } catch (error) {
     console.error("Error fetching posts by club:", error)
     res.status(500).send("Error fetching posts by club")
+  }
+})
+
+
+app.post("/event", async (req, res) => {
+  try {
+    const collection = client.db('capstone-website').collection('events');
+
+    const newEvent = {
+      name: req.body.name || req.body.title || "",
+      description: req.body.description || req.body.summary || "",
+      pinId : req.body.id || 0,
+      latlng : req.body.latlng || {},
+      marker: req.body.marker || {},
+      start: req.body.start || new Date(0),
+      end: req.body.end || new Date(0),
+      coordinator: req.body.coordinator || "",
+      email: req.body.email || "",
+      title: req.body.title || req.body.name || "",
+      hostingGroup: req.body.hostingGroup || "",
+      location: req.body.latlng || {},
+      phone: req.body.phone || 0,
+      summary: req.body.summary || req.body.description || ""
+    }
+
+    const result = await collection.insertOne(newEvent)
+
+    res.status(201).json({ message: 'Post created successfully', postId: result.insertedId })
+  } catch (error) {
+    console.error('Error creating post:', error)
+    res.status(500).send('Error creating post')
+  }
+})
+
+app.get("/event/getAll", async (req, res) => {
+  try {
+    const collection = client.db('capstone-website').collection('events')
+    const pins = await collection.find().toArray()
+
+    res.status(200).json(pins)
+  } catch (error) {
+    console.error("Error fetching club by name:", error)
+    res.status(500).send("Error fetching club by name")
+  }
+})
+
+
+
+
+app.get("/event/:id", async (req, res) => {
+  try {
+    const eventId = new ObjectId(req.params.id)
+    const event = await client.db("capstone-website").collection("events").findOne({ _id: eventId })
+    if (!event) return res.status(404).json({ message: "Event not found" })
+    res.status(200).json(event)
+  } catch (error) {
+    console.error("Error fetching event by ID:", error)
+    res.status(500).send("Error fetching event")
+  }
+})
+
+app.put("/event/:id", async (req, res) => {
+  try {
+    const eventId = new ObjectId(req.params.id)
+    const updatedEvent = {
+      title: req.body.title || "",
+      location: req.body.location || "",
+      summary: req.body.summary || "",
+      hostingGroup: req.body.hostingGroup || "",
+      coordinator: req.body.coordinator || "",
+      email: req.body.email || "",
+      phone: req.body.phone || "",
+      link: req.body.link || "",
+      image: req.body.image || "",
+      start: new Date(req.body.start) || new Date(),
+      end: new Date(req.body.end) || new Date()
+    }
+    const result = await client.db("capstone-website").collection("events").updateOne(
+      { _id: eventId },
+      { $set: updatedEvent }
+    )
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: "Event not found" })
+    }
+    res.status(200).json({ message: "Event updated successfully" })
+  } catch (error) {
+    console.error("Error updating event:", error)
+    res.status(500).send("Error updating event")
+  }
+})
+
+app.delete("/event/:id", async (req, res) => {
+  try {
+    const eventId = new ObjectId(req.params.id)
+    const result = await client.db("capstone-website").collection("events").deleteOne({ _id: eventId })
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: "Event not found" })
+    }
+    res.status(200).json({ message: "Event deleted successfully" })
+  } catch (error) {
+    console.error("Error deleting event:", error)
+    res.status(500).send("Error deleting event")
   }
 })
 

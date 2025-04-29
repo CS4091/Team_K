@@ -1,11 +1,13 @@
 import { Button, } from '@mui/material'
 import {ThumbUpOffAlt, ThumbUpAlt, ThumbDownAlt, ThumbDownOffAlt} from '@mui/icons-material';
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import { useGlobalContext } from '../Context/GlobalContext';
 
 const Upvote = ({post, setPost, commentText}) => {
-  const [liked, setLiked] = useState(false)
-  const [disliked, setDisliked] = useState(false)
-    
+  const {user} = useGlobalContext()
+  const [liked, setLiked] = useState(commentText ? post.comments.filter(comment => comment.comment == commentText)[0]?.likedBy?.includes(user.username) ? true : false : post?.likedBy?.includes(user?.username) ? true : false)
+  const [disliked, setDisliked] = useState(commentText ? post.comments.filter(comment => comment.comment == commentText)[0]?.dislikedBy?.includes(user.username) ? true : false : post?.dislikedBy?.includes(user?.username) ? true : false)
+
   const updatePost = async () => {
     await fetch(`http://localhost:3001/post/${post._id}`, {
       method: "PUT",
@@ -18,11 +20,18 @@ const Upvote = ({post, setPost, commentText}) => {
 
   const changeLiked = () => {
     let newVotes = commentText ? post.comments.filter(comment => comment.comment == commentText)[0].votes : post.votes
+    var newLikedBy = commentText ? post.comments.filter(comment => comment.comment == commentText)[0].likedBy : post.likedBy
+    let newDislikedBy = commentText ? post.comments.filter(comment => comment.comment == commentText)[0].dislikedBy : post.dislikedBy
     if (liked  == true){
       newVotes = newVotes - 1
+      newLikedBy = newLikedBy.filter(name => name !== user.username)
     }else{
-      if(disliked) newVotes = newVotes + 1
+      if(disliked) {
+        newVotes = newVotes + 1
+        newDislikedBy = newDislikedBy.filter(name => name !== user.username)
+      }
       newVotes = newVotes +  1
+      newLikedBy.push(user.username)
     }
     setLiked(!liked)
     if (disliked) {
@@ -31,8 +40,12 @@ const Upvote = ({post, setPost, commentText}) => {
     const newPost = post
     if (commentText) {
       newPost.comments.filter(comment => comment.comment == commentText)[0].votes = newVotes
+      newPost.comments.filter(comment => comment.comment == commentText)[0].likedBy = newLikedBy
+      newPost.comments.filter(comment => comment.comment == commentText)[0].dislikedBy = newDislikedBy
     } else{
       newPost.votes = newVotes
+      newPost.likedBy = newLikedBy
+      newPost.dislikedBy = newDislikedBy
     }
     setPost(newPost)
     updatePost()
@@ -41,11 +54,18 @@ const Upvote = ({post, setPost, commentText}) => {
 
   const changeDisLiked = () => {
     let newVotes = commentText ? post.comments.filter(comment => comment.comment == commentText)[0].votes : post.votes
+    var newLikedBy = commentText ? post.comments.filter(comment => comment.comment == commentText)[0].likedBy : post.likedBy
+    let newDislikedBy = commentText ? post.comments.filter(comment => comment.comment == commentText)[0].dislikedBy : post.dislikedBy
     if (disliked  == false){
-      if(liked) newVotes = newVotes - 1
+      if(liked) {
+        newVotes = newVotes - 1
+        newLikedBy = newLikedBy.filter(name => name !== user.username)
+      }
       newVotes = newVotes - 1
+      newDislikedBy.push(user.username)
     }else{
       newVotes = newVotes +  1
+      newDislikedBy = newDislikedBy.filter(name => name !== user.username)
     }
     setDisliked(!disliked)
     if (liked) {
@@ -54,8 +74,12 @@ const Upvote = ({post, setPost, commentText}) => {
     const newPost = post
     if (commentText) {
       newPost.comments.filter(comment => comment.comment == commentText)[0].votes = newVotes
+      newPost.comments.filter(comment => comment.comment == commentText)[0].likedBy = newLikedBy
+      newPost.comments.filter(comment => comment.comment == commentText)[0].dislikedBy = newDislikedBy
     } else{
       newPost.votes = newVotes
+      newPost.likedBy = newLikedBy
+      newPost.dislikedBy = newDislikedBys
     }
     setPost(newPost)
     updatePost()
@@ -68,9 +92,9 @@ const Upvote = ({post, setPost, commentText}) => {
 
   return (
     <div style={{display:"flex"}}>
-      <Button color='inherit' startIcon={liked ? <ThumbUpAlt/> : <ThumbUpOffAlt/>} variant='outlined' onClick={() =>changeLiked()}></Button>
+      <Button color='inherit' startIcon={liked ? <ThumbUpAlt/> : <ThumbUpOffAlt/>} variant='outlined' onClick={() =>changeLiked()} disabled={!user.username}></Button>
       <h3 style={{marginLeft: '10px', marginRight:'10px'}}>{commentText ? getCommentVotes() : post.votes}</h3>
-      <Button color='inherit' startIcon={disliked ? <ThumbDownAlt/> : <ThumbDownOffAlt/>} variant='outlined' onClick={() => changeDisLiked()}></Button>
+      <Button color='inherit' startIcon={disliked ? <ThumbDownAlt/> : <ThumbDownOffAlt/>} variant='outlined' onClick={() => changeDisLiked()} disabled={!user.username}></Button>
     </div>
   )
 }
