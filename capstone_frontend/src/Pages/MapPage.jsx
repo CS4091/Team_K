@@ -124,6 +124,9 @@ const MapPage = () => {
     if (selectedPin && map) {
       map.setView(selectedPin.latlng, 15);
     }
+    const newMarker = L.marker(selectedPin.latlng).addTo(map)
+        .bindPopup(`<b>${selectedPin.name}</b><br>Lat: ${selectedPin.latlng.lat.toFixed(5)}<br>Lng: ${selectedPin.latlng.lng.toFixed(5)}`)
+        .openPopup();
   };
 
   const handleDeletePin = async (pin) => {
