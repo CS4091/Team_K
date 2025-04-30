@@ -259,7 +259,9 @@ useEffect(() => {
             email: event.email || "",
             phone: event.phone || "",
             link: event.link || "",
-            image: event.image || ''
+            image: event.image || '',
+            start: event.start,
+            end: event.end  
         });
         setModalOpen(true);
     };
@@ -372,6 +374,8 @@ useEffect(() => {
                     /> 
                     
                     <Box display="flex" gap={2} mt={2}>
+                        {/*location filter
+                        
                         <FormControl fullWidth sx={{ flex: 1 }}>
                             <InputLabel>Location</InputLabel>
                             <Select
@@ -384,7 +388,7 @@ useEffect(() => {
                                 ))}
                             </Select>
                         </FormControl>
-
+                        */}
                         <FormControl fullWidth sx={{ flex: 1 }}>
                             <InputLabel>Hosting Group</InputLabel>
                             <Select

@@ -603,9 +603,11 @@ app.post("/event", async (req, res) => {
       email: req.body.email || "",
       title: req.body.title || req.body.name || "",
       hostingGroup: req.body.hostingGroup || "",
-      location: req.body.latlng || {},
+      location: req.body.location || "",
       phone: req.body.phone || 0,
-      summary: req.body.summary || req.body.description || ""
+      summary: req.body.summary || req.body.description || "",
+      link: req.body.link || "",
+      image: req.body.image || ""
     }
 
     const result = await collection.insertOne(newEvent)
