@@ -79,7 +79,7 @@ const Upvote = ({post, setPost, commentText}) => {
     } else{
       newPost.votes = newVotes
       newPost.likedBy = newLikedBy
-      newPost.dislikedBy = newDislikedBys
+      newPost.dislikedBy = newDislikedBy
     }
     setPost(newPost)
     updatePost()
